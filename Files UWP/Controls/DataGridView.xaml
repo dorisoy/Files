@@ -11,8 +11,8 @@
     xmlns:filesystem="using:Files.Filesystem"
     mc:Ignorable="d"
     d:DesignHeight="400"
-    d:DesignWidth="400"
-    x:Name="DataGridViewControl">
+    x:Name="DataGridViewControl"
+    Loaded="DataGridViewControl_Loaded">
     <UserControl.Resources>
         <DataTemplate x:DataType="controls2:DataGridColumnHeader" x:Key="DataGridColumnHeaderContentTemplate_Top">
             <Grid>
@@ -51,7 +51,7 @@
                                             <Setter Target="Root.RevealBorderThickness" Value="0"/>
                                         </VisualState.Setters>
                                     </VisualState>
-                                   
+
                                     <VisualState x:Name="PointerOver">
                                         <VisualState.Setters>
                                             <Setter Target="Root.(RevealBrush.State)" Value="PointerOver"/>
@@ -184,7 +184,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-    
+
     </UserControl.Resources>
 
     <Grid>
@@ -195,17 +195,39 @@
             <RowDefinition Height="32.5"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ItemsStackPanel Height="32" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" x:Name="HeadersStackPanel" Orientation="Horizontal" Tapped="ItemsStackPanel_Tapped" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-            <!--TODO: Replace with a control that can have ColumnHeaders resized-->
-        </ItemsStackPanel>
+        <Grid BorderThickness="0,0,0,0.5" BorderBrush="Gray" Height="32" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" x:Name="HeadersStackPanel" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40"/>
+                <ColumnDefinition Width="275"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="85"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <local:DataGridViewColumnHeader Grid.Column="0" Height="32" InitialWidthProp="40" isIconHeader="True" />
+            <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" ResizeDirection="Columns" Grid.Column="0" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
+            
+            <local:DataGridViewColumnHeader Grid.Column="1" Height="32" HeaderTextProp="Name" InitialWidthProp="275" />
+            <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" Grid.Column="1" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
+
+            <local:DataGridViewColumnHeader Grid.Column="2" Height="32" HeaderTextProp="Date modified" InitialWidthProp="150" />
+            <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" Grid.Column="2" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
+
+            <local:DataGridViewColumnHeader Grid.Column="3" Height="32" HeaderTextProp="Type" InitialWidthProp="150" />
+            <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" Grid.Column="3" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
+
+            <local:DataGridViewColumnHeader Grid.Column="4" Height="32" HeaderTextProp="Size" InitialWidthProp="85" />
+            <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" Grid.Column="4" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
+
+        </Grid>
         <ListView IsRightTapEnabled="True" RightTapped="rootList_RightTapped" ItemContainerStyle="{StaticResource ListViewItemContainerStyle1}" Loaded="rootList_Loaded" x:FieldModifier="public" x:Name="rootList" ItemsSource="{x:Bind itemsSource, Mode=OneWay}" SelectionMode="Extended" Grid.ColumnSpan="2" Grid.Row="1">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="filesystem:ListedItem">
                     <local:DataGridViewRow Tag="{x:Bind ((local2:GenericFileBrowser)local2:App.OccupiedInstance.ItemDisplayFrame.Content).allView.dataGridViewHeaders}" DataContext="{x:Bind Mode=OneWay}"/>
                 </DataTemplate>
             </ListView.ItemTemplate>
-            
+
         </ListView>
     </Grid>
-    
+
 </UserControl>

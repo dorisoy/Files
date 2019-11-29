@@ -208,14 +208,6 @@
             </controls:DataGrid.Columns>
         </controls:DataGrid>-->
         <Grid Background="Transparent" ContextFlyout="{StaticResource BaseLayoutContextFlyout}"/>
-        <controls1:DataGridView Canvas.ZIndex="2" emptySpaceFlyout="{StaticResource BaseLayoutContextFlyout}" rowContextFlyout="{StaticResource BaseLayoutItemContextFlyout}"  HorizontalAlignment="Left" Margin="14,14,0,0" x:FieldModifier="public" x:Name="allView" itemsSource="{x:Bind AssociatedViewModel._filesAndFolders, Mode=OneWay}">
-            <controls1:DataGridView.dataGridViewHeaders>
-                <controls1:DataGridViewHeader InitialWidth="40" isIconHeader="True"/>
-                <controls1:DataGridViewHeader HeaderText="Name" InitialWidth="275"/>
-                <controls1:DataGridViewHeader HeaderText="Date modified" InitialWidth="150"/>
-                <controls1:DataGridViewHeader HeaderText="Type" InitialWidth="150"/>
-                <controls1:DataGridViewHeader HeaderText="Size" InitialWidth="85"/>
-            </controls1:DataGridView.dataGridViewHeaders>
-        </controls1:DataGridView>
+        <controls1:DataGridView Canvas.ZIndex="2" emptySpaceFlyout="{StaticResource BaseLayoutContextFlyout}" rowContextFlyout="{StaticResource BaseLayoutItemContextFlyout}"  HorizontalAlignment="Left" Margin="14,14,0,0" x:FieldModifier="public" x:Name="allView" itemsSource="{x:Bind AssociatedViewModel._filesAndFolders, Mode=OneWay}"/>
     </Grid>
 </local:BaseLayout>

@@ -29,8 +29,8 @@ namespace Files.Controls
         public MenuFlyout rowContextFlyout { get; set; }
         public MenuFlyout emptySpaceFlyout { get; set; }
 
-        private DataGridViewHeader _sortedColumn;
-        public DataGridViewHeader SortedColumn
+        private DataGridViewColumnHeader _sortedColumn;
+        public DataGridViewColumnHeader SortedColumn
         {
             get
             {
@@ -38,13 +38,13 @@ namespace Files.Controls
             }
             set
             {
-                if (value.HeaderText == "Name")
+                if (value.HeaderTextProp == "Name")
                     App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.Name;
-                else if (value.HeaderText == "Date modified")
+                else if (value.HeaderTextProp == "Date modified")
                     App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.DateModified;
-                else if (value.HeaderText == "Type")
+                else if (value.HeaderTextProp == "Type")
                     App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.FileType;
-                else if (value.HeaderText == "Size")
+                else if (value.HeaderTextProp == "Size")
                     App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.Size;
                 else
                     App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.Name;
@@ -62,12 +62,10 @@ namespace Files.Controls
 
         public ObservableCollection<ListedItem> itemsSource { get; set; } = new ObservableCollection<ListedItem>();
         public ObservableCollection<DataGridViewCell> TemplatedRowCells { get; set; } = new ObservableCollection<DataGridViewCell>();
-        public ObservableCollection<DataGridViewHeader> dataGridViewHeaders { get; set; } = new ObservableCollection<DataGridViewHeader>();
+        public ObservableCollection<DataGridViewColumnHeader> dataGridViewHeaders { get; set; } = new ObservableCollection<DataGridViewColumnHeader>();
         public DataGridView()
         {
             this.InitializeComponent();
-
-            
         }
 
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -77,16 +75,16 @@ namespace Files.Controls
                 switch (App.OccupiedInstance.instanceViewModel.DirectorySortOption)
                 {
                     case SortOption.Name:
-                        SortedColumn = dataGridViewHeaders.First(x => x.HeaderText == "Name");
+                        SortedColumn = dataGridViewHeaders.First(x => x.HeaderTextProp == "Name");
                         break;
                     case SortOption.DateModified:
-                        SortedColumn = dataGridViewHeaders.First(x => x.HeaderText == "Date modified");
+                        SortedColumn = dataGridViewHeaders.First(x => x.HeaderTextProp == "Date modified");
                         break;
                     case SortOption.FileType:
-                        SortedColumn = dataGridViewHeaders.First(x => x.HeaderText == "Type");
+                        SortedColumn = dataGridViewHeaders.First(x => x.HeaderTextProp == "Type");
                         break;
                     case SortOption.Size:
-                        SortedColumn = dataGridViewHeaders.First(x => x.HeaderText == "Size");
+                        SortedColumn = dataGridViewHeaders.First(x => x.HeaderTextProp == "Size");
                         break;
                 }
             }
@@ -141,27 +139,29 @@ namespace Files.Controls
 
         private void ListViewHeader_ClickToSort(object sender, ItemClickEventArgs e)
         {
-            if ((e.ClickedItem as DataGridViewHeader).HeaderText == SortedColumn.HeaderText)
+            if ((e.ClickedItem as DataGridViewColumnHeader).HeaderTextProp == SortedColumn.HeaderTextProp)
                 App.OccupiedInstance.instanceViewModel.IsSortedAscending = !App.OccupiedInstance.instanceViewModel.IsSortedAscending;
-            else if (!(e.ClickedItem as DataGridViewHeader).isIconHeader)
-                SortedColumn = (e.ClickedItem as DataGridViewHeader);
+            else if (!(e.ClickedItem as DataGridViewColumnHeader).isIconHeader)
+                SortedColumn = (e.ClickedItem as DataGridViewColumnHeader);
         }
 
         private void rootList_Loaded(object sender, RoutedEventArgs e)
         {
+            dataGridViewHeaders = new ObservableCollection<DataGridViewColumnHeader>(HeadersStackPanel.Children.Where(x => x.GetType().Equals(typeof(DataGridViewColumnHeader))).Cast<DataGridViewColumnHeader>().ToList());
+
             switch (App.OccupiedInstance.instanceViewModel.DirectorySortOption)
             {
                 case SortOption.Name:
-                    SortedColumn = dataGridViewHeaders.First(x => x.HeaderText == "Name");
+                    SortedColumn = dataGridViewHeaders.First(x => x.HeaderTextProp == "Name");
                     break;
                 case SortOption.DateModified:
-                    SortedColumn = dataGridViewHeaders.First(x => x.HeaderText == "Date modified");
+                    SortedColumn = dataGridViewHeaders.First(x => x.HeaderTextProp == "Date modified");
                     break;
                 case SortOption.FileType:
-                    SortedColumn = dataGridViewHeaders.First(x => x.HeaderText == "Type");
+                    SortedColumn = dataGridViewHeaders.First(x => x.HeaderTextProp == "Type");
                     break;
                 case SortOption.Size:
-                    SortedColumn = dataGridViewHeaders.First(x => x.HeaderText == "Size");
+                    SortedColumn = dataGridViewHeaders.First(x => x.HeaderTextProp == "Size");
                     break;
             }
 
@@ -189,14 +189,10 @@ namespace Files.Controls
                 emptySpaceFlyout.ShowAt(sender as ListView, e.GetPosition(sender as ListView));
             }
         }
-    }
 
-    public class DataGridViewHeader
-    {
-        public int InitialWidth { get; set; }
-        public string HeaderText { get; set; }
-        public object SortDirection { get; set; } = null;
-        public bool isIconHeader { get; set; } = false;
+        private void DataGridViewControl_Loaded(object sender, RoutedEventArgs e)
+        {
+        }
     }
 
 }

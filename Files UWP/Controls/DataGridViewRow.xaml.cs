@@ -53,8 +53,13 @@ namespace Files.Controls
                     {
                         EditAllowed = true;
                     }
-                    var width = (this.Tag as ObservableCollection<DataGridViewHeader>)[index].InitialWidth;
-                    selectedProperties.Add(new PropertyInfoValueItem() { PropertyName = property.Name, Value = property.GetValue(DataContext, null), isValueEditable = EditAllowed, cellWidth = width });
+                    var width = (this.Tag as ObservableCollection<DataGridViewColumnHeader>)[index].ActualWidth;
+                    selectedProperties.Add(new PropertyInfoValueItem() { 
+                        PropertyName = property.Name, 
+                        Value = property.GetValue(DataContext, null), 
+                        isValueEditable = EditAllowed, 
+                        cellWidth = int.Parse(width.ToString().Split('.')[0]) 
+                    });
                     index++;
                 }
             }

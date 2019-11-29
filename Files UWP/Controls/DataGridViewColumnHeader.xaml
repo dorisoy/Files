@@ -9,10 +9,13 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Grid Background="Transparent" IsHitTestVisible="True" ManipulationMode="Scale" ManipulationDelta="Header_ManipulationDelta" Width="{x:Bind InitialWidthProp}" BorderBrush="LightGray" BorderThickness="0,0,0.5,0">
-        <Grid.RenderTransform>
-            <ScaleTransform x:Name="scaleTransform"/>
-        </Grid.RenderTransform>
-        <TextBlock Foreground="Gray" FontSize="11" Padding="8,0,0,0" Text="{x:Bind HeaderTextProp}" VerticalAlignment="Center"/>
-    </Grid>
+    <Border IsHitTestVisible="True" x:Name="HeaderBorder" BorderBrush="Gray" BorderThickness="0,0,0.5,0">
+        <Grid HorizontalAlignment="Stretch" Background="Transparent" Width="{x:Bind InitialWidthProp}">
+            <Grid.RenderTransform>
+                <ScaleTransform x:Name="scaleTransform"/>
+            </Grid.RenderTransform>
+            <TextBlock Foreground="Gray" FontSize="11" Padding="8,0,0,0" Text="{x:Bind HeaderTextProp}" VerticalAlignment="Center"/>
+        </Grid>
+    </Border>
+    
 </UserControl>
