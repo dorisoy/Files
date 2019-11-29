@@ -22,6 +22,10 @@ using System.Reflection;
 using Files.Dialogs;
 using System.IO.Compression;
 using System.Linq;
+using Files.Controls;
+using Windows.Foundation.Metadata;
+using Windows.UI.WindowManagement;
+using Windows.UI.Xaml.Hosting;
 
 namespace Files.Interacts
 {
@@ -112,7 +116,7 @@ namespace Files.Interacts
                 List<string> itemsToPin = new List<string>();
 
 
-                foreach (ListedItem listedItem in (currentInstance.ItemDisplayFrame.Content as GenericFileBrowser).AllView.SelectedItems)
+                foreach (ListedItem listedItem in (currentInstance.ItemDisplayFrame.Content as GenericFileBrowser).allView.rootList.SelectedItems)
                 {
                     itemsToPin.Add(listedItem.FilePath);
                 }
@@ -267,25 +271,7 @@ namespace Files.Interacts
             await Launcher.LaunchUriAsync(new Uri("ms-settings:privacy-broadfilesystemaccess"));
         }
 
-        public DataGrid dataGrid;
 
-        public void AllView_RightTapped(object sender, RightTappedRoutedEventArgs e)
-        {
-            dataGrid = (DataGrid)sender;
-            var RowPressed = FindParent<DataGridRow>(e.OriginalSource as DependencyObject);
-            if(RowPressed != null)
-            {
-                var ObjectPressed = ((ReadOnlyObservableCollection<ListedItem>)dataGrid.ItemsSource)[RowPressed.GetIndex()];
-                // Check if RightTapped row is currently selected
-                var CurrentInstance = App.OccupiedInstance;
-                if ((currentInstance.ItemDisplayFrame.Content as BaseLayout).selectedItems.Contains(ObjectPressed))
-                    return;
-                // The following code is only reachable when a user RightTapped an unselected row
-                dataGrid.SelectedItems.Clear();
-                dataGrid.SelectedItems.Add(ObjectPressed);
-            }
-            
-        }
 
         public static void FindChildren<T>(List<T> results, DependencyObject startNode) where T : DependencyObject
         {
@@ -472,9 +458,30 @@ namespace Files.Interacts
 
         public async void ShowPropertiesButton_Click(object sender, RoutedEventArgs e)
         {
-            App.propertiesDialog.accessiblePropertiesFrame.Tag = App.propertiesDialog;
-            App.propertiesDialog.accessiblePropertiesFrame.Navigate(typeof(Properties), (App.OccupiedInstance.ItemDisplayFrame.Content as BaseLayout).selectedItems, new SuppressNavigationTransitionInfo());
-            await App.propertiesDialog.ShowAsync(ContentDialogPlacement.Popup);
+            if (ApiInformation.IsTypePresent("Windows.UI.WindowManagement.AppWindow"))
+            {
+                AppWindow appWindow = await AppWindow.TryCreateAsync();
+                Frame propertiesWindowContentFrame = new Frame();
+                propertiesWindowContentFrame.Padding = new Thickness(8);
+                propertiesWindowContentFrame.Navigate(typeof(Properties), (App.OccupiedInstance.ItemDisplayFrame.Content as BaseLayout).selectedItems, new SuppressNavigationTransitionInfo());
+                appWindow.RequestSize(new Size(250, 650));
+                appWindow.Title = "Properties of selected item(s)";
+                ElementCompositionPreview.SetAppWindowContent(appWindow, propertiesWindowContentFrame);
+                appWindow.Closed += delegate
+                {
+                    propertiesWindowContentFrame.Content = null;
+                    appWindow = null;
+                };
+                
+                await appWindow.TryShowAsync();
+            }
+            else
+            {
+                App.propertiesDialog.accessiblePropertiesFrame.Tag = App.propertiesDialog;
+                App.propertiesDialog.accessiblePropertiesFrame.Navigate(typeof(Properties), (App.OccupiedInstance.ItemDisplayFrame.Content as BaseLayout).selectedItems, new SuppressNavigationTransitionInfo());
+                await App.propertiesDialog.ShowAsync(ContentDialogPlacement.Popup);
+            }
+            
         }
 
         private async void Manager_DataRequested(DataTransferManager sender, DataRequestedEventArgs args)
@@ -662,9 +669,9 @@ namespace Files.Interacts
             if (App.OccupiedInstance.ItemDisplayFrame.SourcePageType == typeof(GenericFileBrowser))
             {
                 var fileBrowser = App.OccupiedInstance.ItemDisplayFrame.Content as GenericFileBrowser;
-                if (fileBrowser.AllView.SelectedItem != null)
-                    fileBrowser.AllView.CurrentColumn = fileBrowser.AllView.Columns[1];
-                fileBrowser.AllView.BeginEdit();
+                //if (fileBrowser.allView.rootList.SelectedItem != null)
+                //    fileBrowser.AllView.CurrentColumn = fileBrowser.AllView.Columns[1];
+                fileBrowser.allView.BeginEdit(1);
             }
             else if (App.OccupiedInstance.ItemDisplayFrame.SourcePageType == typeof(PhotoAlbum))
             {
@@ -687,7 +694,6 @@ namespace Files.Interacts
                         var folder = await StorageFolder.GetFolderFromPathAsync(item.FilePath);
                         if (isRenamedSameNameDiffCase)
                             throw new InvalidOperationException();
-                        //await folder.RenameAsync(newName, NameCollisionOption.ReplaceExisting);
                         else
                             await folder.RenameAsync(newName, NameCollisionOption.FailIfExists);
                     }
@@ -696,7 +702,6 @@ namespace Files.Interacts
                         var file = await StorageFile.GetFileFromPathAsync(item.FilePath);
                         if (isRenamedSameNameDiffCase)
                             throw new InvalidOperationException();
-                        //await file.RenameAsync(newName, NameCollisionOption.ReplaceExisting);
                         else
                             await file.RenameAsync(newName, NameCollisionOption.FailIfExists);
                     }
@@ -712,7 +717,7 @@ namespace Files.Interacts
             return true;
         }
 
-        public List<DataGridRow> dataGridRows = new List<DataGridRow>();
+        public List<DataGridViewRow> dataGridRows = new List<DataGridViewRow>();
         public List<GridViewItem> gridViewItems = new List<GridViewItem>();
         public async void CutItem_Click(object sender, RoutedEventArgs e)
         {
@@ -726,31 +731,18 @@ namespace Files.Interacts
                 if ((currentInstance.ItemDisplayFrame.Content as BaseLayout).selectedItems.Count != 0)
                 {
                     dataGridRows.Clear();
-                    FindChildren<DataGridRow>(dataGridRows, (CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).AllView);
+                    FindChildren<DataGridViewRow>(dataGridRows, (CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).allView.rootList);
                     
-                    // First, reset DataGrid Rows that may be in "cut" command mode
-                    foreach (DataGridRow row in dataGridRows)
+                    // First, reset DataGridView Rows that may be in "cut" command mode
+                    foreach (DataGridViewRow row in dataGridRows)
                     {
-                        if ((CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).AllView.Columns[0].GetCellContent(row).Opacity < 1)
-                        {
-                            (CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).AllView.Columns[0].GetCellContent(row).Opacity = 1;
-                        }
+                        row.DisableRowCutDisplayState();
                     }
 
                     foreach (ListedItem StorItem in (currentInstance.ItemDisplayFrame.Content as BaseLayout).selectedItems)
                     {
-                        IEnumerator allItems = (CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).AllView.ItemsSource.GetEnumerator();
-                        int index = -1;
-                        while (allItems.MoveNext())
-                        {
-                            index++;
-                            var item = allItems.Current;
-                            if(item == StorItem)
-                            {
-                                DataGridRow dataGridRow = dataGridRows[index];
-                                (CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).AllView.Columns[0].GetCellContent(dataGridRow).Opacity = 0.4;
-                            }
-                        }
+                        var itemContainer = (CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).allView.rootList.ContainerFromItem(StorItem as ListedItem) as DataGridViewRow;
+                        itemContainer.EnableRowCutDisplayState();
 
                         App.pathsToDeleteAfterPaste.Add(StorItem.FilePath);
                         if (StorItem.FileType != "Folder")
@@ -960,7 +952,7 @@ namespace Files.Interacts
             if (currentInstance.ItemDisplayFrame.CurrentSourcePageType == typeof(GenericFileBrowser))
             {
                 var page = (currentInstance.ItemDisplayFrame.Content as GenericFileBrowser);
-                selectedItem = await StorageFile.GetFileFromPathAsync(currentInstance.instanceViewModel.FilesAndFolders[page.AllView.SelectedIndex].FilePath);
+                selectedItem = await StorageFile.GetFileFromPathAsync(currentInstance.instanceViewModel.FilesAndFolders[page.allView.rootList.SelectedIndex].FilePath);
 
             }
             else if (currentInstance.ItemDisplayFrame.CurrentSourcePageType == typeof(PhotoAlbum))
@@ -1012,7 +1004,7 @@ namespace Files.Interacts
             if(App.OccupiedInstance.ItemDisplayFrame.SourcePageType == typeof(GenericFileBrowser))
             {
                 var CurrentInstance = App.OccupiedInstance;
-                foreach (ListedItem li in (CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).AllView.ItemsSource)
+                foreach (ListedItem li in (CurrentInstance.ItemDisplayFrame.Content as GenericFileBrowser).allView.itemsSource)
                 {
                     if (!(currentInstance.ItemDisplayFrame.Content as BaseLayout).selectedItems.Contains(li))
                     {

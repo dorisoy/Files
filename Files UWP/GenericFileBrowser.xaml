@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="using:Files"
     xmlns:uilib="using:Microsoft.UI.Xaml.Controls"
+    xmlns:controls1="using:Files.Controls"
     mc:Ignorable="d"  NavigationCacheMode="Required" PointerReleased="GenericItemView_PointerReleased" Background="{StaticResource ApplicationPageBackgroundThemeBrush}">
     <local:BaseLayout.Resources>
         <MenuFlyout x:Key="BaseLayoutContextFlyout">
@@ -143,10 +144,10 @@
             </MenuFlyoutItem>
         </MenuFlyout>
     </local:BaseLayout.Resources>
-    <Grid ContextFlyout="{StaticResource BaseLayoutContextFlyout}" Background="Transparent" x:Name="RootGrid">
-        <ProgressBar Visibility="{x:Bind AssociatedViewModel.LoadIndicator.isVisible,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" x:Name="progBar" Height="10" VerticalAlignment="Top" IsIndeterminate="True"/>
-        <TextBlock Visibility="{x:Bind AssociatedViewModel.EmptyTextState.isVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="EmptyText" HorizontalAlignment="Center" Text="This folder is empty." TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,125,0,0"/>
-        <controls:DataGrid DoubleTapped="{x:Bind local:App.OccupiedInstance.instanceInteraction.List_ItemClick}" RightTapped="{x:Bind local:App.OccupiedInstance.instanceInteraction.AllView_RightTapped}" ItemsSource="{x:Bind AssociatedViewModel.FilesAndFolders}" PreviewKeyDown="AllView_PreviewKeyDown" ScrollViewer.IsScrollInertiaEnabled="True"  ClipboardCopyMode="None" RowDetailsVisibilityMode="Collapsed" AllowDrop="True" Drop="AllView_DropAsync" DragStarting="AllView_DragStarting" SelectionChanged="AllView_SelectionChanged" Margin="24,24,0,0" Grid.Row="3" PreparingCellForEdit="AllView_PreparingCellForEdit" CellEditEnding="AllView_CellEditEnding" FocusVisualPrimaryThickness="0" SelectionMode="Extended" IsDoubleTapEnabled="True" x:FieldModifier="public" x:Name="AllView" AutoGenerateColumns="False" CanDrag="True" DragOver="AllView_DragOver" IsRightTapEnabled="True" CanUserReorderColumns="False" CanUserSortColumns="True" Sorting="AllView_Sorting" HorizontalAlignment="Left">
+    <Grid Background="Transparent" x:Name="RootGrid">
+        <ProgressBar Canvas.ZIndex="2" Visibility="{x:Bind AssociatedViewModel.LoadIndicator.isVisible,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" x:Name="progBar" Height="10" VerticalAlignment="Top" IsIndeterminate="True"/>
+        <TextBlock Canvas.ZIndex="2" Visibility="{x:Bind AssociatedViewModel.EmptyTextState.isVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" x:Name="EmptyText" HorizontalAlignment="Center" Text="This folder is empty." TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,125,0,0"/>
+        <!--<controls:DataGrid DoubleTapped="{x:Bind local:App.OccupiedInstance.instanceInteraction.List_ItemClick}" RightTapped="{x:Bind local:App.OccupiedInstance.instanceInteraction.AllView_RightTapped}" ItemsSource="{x:Bind AssociatedViewModel.FilesAndFolders}" PreviewKeyDown="AllView_PreviewKeyDown" ScrollViewer.IsScrollInertiaEnabled="True"  ClipboardCopyMode="None" RowDetailsVisibilityMode="Collapsed" AllowDrop="True" Drop="AllView_DropAsync" DragStarting="AllView_DragStarting" SelectionChanged="AllView_SelectionChanged" Margin="24,24,0,0" Grid.Row="3" PreparingCellForEdit="AllView_PreparingCellForEdit" CellEditEnding="AllView_CellEditEnding" FocusVisualPrimaryThickness="0" SelectionMode="Extended" IsDoubleTapEnabled="True" x:FieldModifier="public" x:Name="AllView" AutoGenerateColumns="False" CanDrag="True" DragOver="AllView_DragOver" IsRightTapEnabled="True" CanUserReorderColumns="False" CanUserSortColumns="True" Sorting="AllView_Sorting" HorizontalAlignment="Left">
             <controls:DataGrid.Resources>
                 <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush" Color="Transparent"/>
                 <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush" Color="Transparent"/>
@@ -205,8 +206,16 @@
                 <controls:DataGridTextColumn DisplayIndex="3" x:Name="typeColumn" IsReadOnly="True" Header="Type" Width="150" Binding="{Binding FileType}" Tag="Type"/>
                 <controls:DataGridTextColumn DisplayIndex="4" x:Name="sizeColumn" IsReadOnly="True" Header="Size" Width="Auto" MinWidth="100" Binding="{Binding FileSize}" Tag="Size"/>
             </controls:DataGrid.Columns>
-        </controls:DataGrid>
-
-
+        </controls:DataGrid>-->
+        <Grid Background="Transparent" ContextFlyout="{StaticResource BaseLayoutContextFlyout}"/>
+        <controls1:DataGridView Canvas.ZIndex="2" emptySpaceFlyout="{StaticResource BaseLayoutContextFlyout}" rowContextFlyout="{StaticResource BaseLayoutItemContextFlyout}"  HorizontalAlignment="Left" Margin="14,14,0,0" x:FieldModifier="public" x:Name="allView" itemsSource="{x:Bind AssociatedViewModel._filesAndFolders, Mode=OneWay}">
+            <controls1:DataGridView.dataGridViewHeaders>
+                <controls1:DataGridViewHeader InitialWidth="40" isIconHeader="True"/>
+                <controls1:DataGridViewHeader HeaderText="Name" InitialWidth="275"/>
+                <controls1:DataGridViewHeader HeaderText="Date modified" InitialWidth="150"/>
+                <controls1:DataGridViewHeader HeaderText="Type" InitialWidth="150"/>
+                <controls1:DataGridViewHeader HeaderText="Size" InitialWidth="85"/>
+            </controls1:DataGridView.dataGridViewHeaders>
+        </controls1:DataGridView>
     </Grid>
 </local:BaseLayout>

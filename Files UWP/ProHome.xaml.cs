@@ -1,4 +1,5 @@
-﻿using Files.Filesystem;
+﻿using Files.Controls;
+using Files.Filesystem;
 using Files.Interacts;
 using Files.Navigation;
 using Microsoft.Toolkit.Uwp.UI.Controls;
@@ -141,13 +142,11 @@ namespace Files
             {
                 // Reset DataGrid Rows that may be in "cut" command mode
                 App.OccupiedInstance.instanceInteraction.dataGridRows.Clear();
-                Interaction.FindChildren<DataGridRow>(App.OccupiedInstance.instanceInteraction.dataGridRows, (ItemDisplayFrame.Content as GenericFileBrowser).AllView);
-                foreach (DataGridRow dataGridRow in App.OccupiedInstance.instanceInteraction.dataGridRows)
+                Interaction.FindChildren<DataGridViewRow>(App.OccupiedInstance.instanceInteraction.dataGridRows, (ItemDisplayFrame.Content as GenericFileBrowser).allView.rootList);
+                // First, reset DataGridView Rows that may be in "cut" command mode
+                foreach (DataGridViewRow row in App.OccupiedInstance.instanceInteraction.dataGridRows)
                 {
-                    if ((ItemDisplayFrame.Content as GenericFileBrowser).AllView.Columns[0].GetCellContent(dataGridRow).Opacity < 1)
-                    {
-                        (ItemDisplayFrame.Content as GenericFileBrowser).AllView.Columns[0].GetCellContent(dataGridRow).Opacity = 1;
-                    }
+                    row.DisableRowCutDisplayState();
                 }
             }
             RibbonArea.Focus(FocusState.Programmatic);

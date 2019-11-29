@@ -37,7 +37,7 @@ namespace Files.Filesystem
         public ReadOnlyObservableCollection<ListedItem> FilesAndFolders { get; }
         public CollectionViewSource viewSource;
         public UniversalPath Universal { get; } = new UniversalPath();
-        private ObservableCollection<ListedItem> _filesAndFolders;
+        public ObservableCollection<ListedItem> _filesAndFolders;
         private StorageFolderQueryResult _folderQueryResult;
         public StorageFileQueryResult _fileQueryResult;
         private CancellationTokenSource _cancellationTokenSource;

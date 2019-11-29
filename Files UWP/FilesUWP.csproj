@@ -138,6 +138,18 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="BaseLayout.cs" />
+    <Compile Include="Controls\DataGridView.xaml.cs">
+      <DependentUpon>DataGridView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DataGridViewCell.xaml.cs">
+      <DependentUpon>DataGridViewCell.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DataGridViewColumnHeader.xaml.cs">
+      <DependentUpon>DataGridViewColumnHeader.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\DataGridViewRow.xaml.cs">
+      <DependentUpon>DataGridViewRow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\RibbonArea.xaml.cs">
       <DependentUpon>RibbonArea.xaml</DependentUpon>
     </Compile>
@@ -235,6 +247,22 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="AddItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\DataGridView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\DataGridViewCell.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\DataGridViewColumnHeader.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\DataGridViewRow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

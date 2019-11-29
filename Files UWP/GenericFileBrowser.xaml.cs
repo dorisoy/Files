@@ -10,6 +10,8 @@ using Files.Enums;
 using Files.Filesystem;
 using Windows.System;
 using Windows.UI.Xaml.Input;
+using Files.Controls;
+using System.Linq;
 
 namespace Files
 {
@@ -17,87 +19,16 @@ namespace Files
     {
         
         public string previousFileName;
-        private DataGridColumn _sortedColumn;
-        public DataGridColumn SortedColumn
-        {
-            get
-            {
-                return _sortedColumn;
-            }
-            set
-            {
-                if (value == nameColumn)
-                    App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.Name;
-                else if (value == dateColumn)
-                    App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.DateModified;
-                else if (value == typeColumn)
-                    App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.FileType;
-                else if (value == sizeColumn)
-                    App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.Size;
-                else
-                    App.OccupiedInstance.instanceViewModel.DirectorySortOption = SortOption.Name;
-
-                if (value != _sortedColumn)
-                {
-                    // Remove arrow on previous sorted column
-                    if (_sortedColumn != null)
-                        _sortedColumn.SortDirection = null;
-                }
-                value.SortDirection = App.OccupiedInstance.instanceViewModel.DirectorySortDirection == SortDirection.Ascending ? DataGridSortDirection.Ascending : DataGridSortDirection.Descending;
-                _sortedColumn = value;
-            }
-        }
+        
 
         public GenericFileBrowser()
         {
             this.InitializeComponent();
 
-            switch (App.OccupiedInstance.instanceViewModel.DirectorySortOption)
-            {
-                case SortOption.Name:
-                    SortedColumn = nameColumn;
-                    break;
-                case SortOption.DateModified:
-                    SortedColumn = dateColumn;
-                    break;
-                case SortOption.FileType:
-                    SortedColumn = typeColumn;
-                    break;
-                case SortOption.Size:
-                    SortedColumn = sizeColumn;
-                    break;
-            }
-
-            App.OccupiedInstance.instanceViewModel.PropertyChanged += ViewModel_PropertyChanged;
+            
         }
 
-        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "DirectorySortOption")
-            {
-                switch (App.OccupiedInstance.instanceViewModel.DirectorySortOption)
-                {
-                    case SortOption.Name:
-                        SortedColumn = nameColumn;
-                        break;
-                    case SortOption.DateModified:
-                        SortedColumn = dateColumn;
-                        break;
-                    case SortOption.FileType:
-                        SortedColumn = typeColumn;
-                        break;
-                    case SortOption.Size:
-                        SortedColumn = sizeColumn;
-                        break;
-                }
-            }
-            else if (e.PropertyName == "DirectorySortDirection")
-            {
-                // Swap arrows
-                SortedColumn = _sortedColumn;
-            }
-        }
-
+        
         private void AllView_DragOver(object sender, DragEventArgs e)
         {
             e.AcceptedOperation = DataPackageOperation.Copy;
@@ -125,7 +56,7 @@ namespace Files
         private void AllView_PreparingCellForEdit(object sender, DataGridPreparingCellForEditEventArgs e)
         {
             var textBox = e.EditingElement as TextBox;
-            var selectedItem = AllView.SelectedItem as ListedItem;
+            var selectedItem = allView.rootList.SelectedItem as ListedItem;
             int extensionLength = selectedItem.DotFileExtension?.Length ?? 0;
 
             previousFileName = selectedItem.FileName;
@@ -138,7 +69,7 @@ namespace Files
             if (e.EditAction == DataGridEditAction.Cancel)
                 return;
 
-            var selectedItem = AllView.SelectedItem as ListedItem;
+            var selectedItem = allView.rootList.SelectedItem as ListedItem;
             string currentName = previousFileName;
             string newName = (e.EditingElement as TextBox).Text;
 
@@ -152,20 +83,20 @@ namespace Files
 
         private void GenericItemView_PointerReleased(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
-            AllView.SelectedItem = null;
+            allView.rootList.SelectedItem = null;
             App.OccupiedInstance.HomeItems.isEnabled = false;
             App.OccupiedInstance.ShareItems.isEnabled = false;
         }
 
         private void AllView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            AllView.CommitEdit();
+            allView.CommitEdit(1);
             if (e.AddedItems.Count > 0)
             {
                 App.OccupiedInstance.HomeItems.isEnabled = true;
                 App.OccupiedInstance.ShareItems.isEnabled = true;
             }
-            else if (AllView.SelectedItems.Count == 0)
+            else if (allView.rootList.SelectedItems.Count == 0)
             {
                 App.OccupiedInstance.HomeItems.isEnabled = false;
                 App.OccupiedInstance.ShareItems.isEnabled = false;
@@ -179,10 +110,7 @@ namespace Files
         
         private void AllView_Sorting(object sender, DataGridColumnEventArgs e)
         {
-            if (e.Column == SortedColumn)
-                App.OccupiedInstance.instanceViewModel.IsSortedAscending = !App.OccupiedInstance.instanceViewModel.IsSortedAscending;
-            else if (e.Column != iconColumn)
-                SortedColumn = e.Column;
+            
         }
 
         private void AllView_PreviewKeyDown(object sender, KeyRoutedEventArgs e)

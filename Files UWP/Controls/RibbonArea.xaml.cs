@@ -281,19 +281,9 @@ namespace Files.Controls
             await App.layoutDialog.ShowAsync();
         }
 
-        public async void ShowPropertiesButton_Click(object sender, RoutedEventArgs e)
+        public void ShowPropertiesButton_Click(object sender, RoutedEventArgs e)
         {
-            if (parentPage.ItemDisplayFrame.SourcePageType == typeof(GenericFileBrowser))
-            {
-                App.propertiesDialog.accessiblePropertiesFrame.Tag = App.propertiesDialog;
-                App.propertiesDialog.accessiblePropertiesFrame.Navigate(typeof(Properties), (parentPage.ItemDisplayFrame.Content as GenericFileBrowser).AllView.SelectedItems, new SuppressNavigationTransitionInfo());
-            }
-            else if (parentPage.ItemDisplayFrame.SourcePageType == typeof(PhotoAlbum))
-            {
-                App.propertiesDialog.accessiblePropertiesFrame.Tag = App.propertiesDialog;
-                App.propertiesDialog.accessiblePropertiesFrame.Navigate(typeof(Properties), (parentPage.ItemDisplayFrame.Content as PhotoAlbum).FileList.SelectedItems, new SuppressNavigationTransitionInfo());
-            }
-            await App.propertiesDialog.ShowAsync(ContentDialogPlacement.Popup);
+            App.OccupiedInstance.instanceInteraction.ShowPropertiesButton_Click(null, null);
         }
 
         private async void NewWindowButton_Click(object sender, RoutedEventArgs e)

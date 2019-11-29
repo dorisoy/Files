@@ -31,7 +31,7 @@ namespace Files
             {
                 if (App.OccupiedInstance.ItemDisplayFrame.CurrentSourcePageType == typeof(GenericFileBrowser))
                 {
-                    return (App.OccupiedInstance.ItemDisplayFrame.Content as GenericFileBrowser).AllView.SelectedItems.Cast<ListedItem>().ToList();
+                    return (App.OccupiedInstance.ItemDisplayFrame.Content as GenericFileBrowser).allView.rootList.SelectedItems.Cast<ListedItem>().ToList();
                 }
                 else if (App.OccupiedInstance.ItemDisplayFrame.CurrentSourcePageType == typeof(PhotoAlbum))
                 {
