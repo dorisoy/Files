@@ -24,6 +24,9 @@ namespace Files.Controls
         public string CellText { get; set; }
         public bool IsEditable { get; set; } = false;
         public bool IsEditing { get; set; } = false;
+        public bool IsEmptyImage { get; set; } = false;
+        public bool IsFolder { get; set; } = false;
+        public bool IsThumbnailedFile { get; set; } = false;
 
         public DataGridViewCell()
         {

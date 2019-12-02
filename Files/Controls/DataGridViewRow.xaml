@@ -12,10 +12,10 @@
     d:DesignWidth="800">
     <UserControl.Resources>
         <DataTemplate x:Key="ImageCellTemplate" x:DataType="local:PropertyInfoValueItem">
-            <local:DataGridViewCell HorizontalContentAlignment="Stretch" Width="{x:Bind cellWidth, Mode=OneWay}" IsEditable="False" CellImage="{x:Bind (BitmapImage)Value, Mode=OneWay}"/>
+            <local:DataGridViewCell IsEmptyImage="{x:Bind IsRowEmptyImage}" IsThumbnailedFile="{x:Bind IsRowThumbnailedFile}" IsFolder="{x:Bind IsRowFolder}" HorizontalContentAlignment="Stretch" Width="{x:Bind CellWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="False" CellImage="{x:Bind (BitmapImage)Value, Mode=OneWay}"/>
         </DataTemplate>
         <DataTemplate x:Key="TextCellTemplate" x:DataType="local:PropertyInfoValueItem">
-            <local:DataGridViewCell HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" Width="{x:Bind cellWidth, Mode=OneWay}" IsEditable="{x:Bind isValueEditable, Mode=OneWay}" CellText="{x:Bind (x:String)Value, Mode=OneWay}"/>
+            <local:DataGridViewCell IsEmptyImage="{x:Bind IsRowEmptyImage}" IsThumbnailedFile="{x:Bind IsRowThumbnailedFile}" IsFolder="{x:Bind IsRowFolder}" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" Width="{x:Bind CellWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="{x:Bind isValueEditable, Mode=OneWay}" CellText="{x:Bind (x:String)Value, Mode=OneWay}"/>
         </DataTemplate>
         <local:CellDataTemplateSelector x:Key="DataGridViewCellTemplateSelector" ImageCellTemplate="{StaticResource ImageCellTemplate}" TextCellTemplate="{StaticResource TextCellTemplate}"/>
         <Style x:Key="RowCellContainerStyle" TargetType="ListViewItem">

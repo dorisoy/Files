@@ -195,7 +195,7 @@
             <RowDefinition Height="32.5"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid BorderThickness="0,0,0,0.5" BorderBrush="Gray" Height="32" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" x:Name="HeadersStackPanel" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+        <Grid BorderThickness="0,0,0,0.5" BorderBrush="LightGray" Height="32" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" x:Name="HeadersStackPanel" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="40"/>
                 <ColumnDefinition Width="275"/>
@@ -204,19 +204,19 @@
                 <ColumnDefinition Width="85"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <local:DataGridViewColumnHeader Grid.Column="0" Height="32" InitialWidthProp="40" isIconHeader="True" />
+            <local:DataGridViewColumnHeader SizeChanged="DataGridViewColumnHeader_SizeChanged" Grid.Column="0" Height="32" InitialWidthProp="40" isIconHeader="True" />
             <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" ResizeDirection="Columns" Grid.Column="0" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
             
-            <local:DataGridViewColumnHeader Grid.Column="1" Height="32" HeaderTextProp="Name" InitialWidthProp="275" />
+            <local:DataGridViewColumnHeader SizeChanged="DataGridViewColumnHeader_SizeChanged" Grid.Column="1" Height="32" HeaderTextProp="Name" InitialWidthProp="275" />
             <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" Grid.Column="1" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
 
-            <local:DataGridViewColumnHeader Grid.Column="2" Height="32" HeaderTextProp="Date modified" InitialWidthProp="150" />
+            <local:DataGridViewColumnHeader SizeChanged="DataGridViewColumnHeader_SizeChanged" Grid.Column="2" Height="32" HeaderTextProp="Date modified" InitialWidthProp="150" />
             <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" Grid.Column="2" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
 
-            <local:DataGridViewColumnHeader Grid.Column="3" Height="32" HeaderTextProp="Type" InitialWidthProp="150" />
+            <local:DataGridViewColumnHeader SizeChanged="DataGridViewColumnHeader_SizeChanged" Grid.Column="3" Height="32" HeaderTextProp="Type" InitialWidthProp="150" />
             <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" Grid.Column="3" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
 
-            <local:DataGridViewColumnHeader Grid.Column="4" Height="32" HeaderTextProp="Size" InitialWidthProp="85" />
+            <local:DataGridViewColumnHeader SizeChanged="DataGridViewColumnHeader_SizeChanged" Grid.Column="4" Height="32" HeaderTextProp="Size" InitialWidthProp="85" />
             <controls:GridSplitter Background="Transparent" GripperForeground="Transparent" Element="{x:Null}" GripperCursor="SizeWestEast" Grid.Column="4" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right"/>
 
         </Grid>

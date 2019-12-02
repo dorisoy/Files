@@ -10,8 +10,10 @@
     d:DesignWidth="200">
 
     <Grid HorizontalAlignment="Stretch" >
-        <TextBox  MinHeight="0" x:FieldModifier="public" x:Name="CellTextField" Text="{x:Bind CellText, Mode=OneWay}" IsReadOnly="True" x:Load="{x:Bind IsEditing, Mode=OneWay}"/>
-        <Image Width="20" Height="20" x:Name="CellIcon" x:FieldModifier="public" Source="{x:Bind CellImage, Mode=OneWay}"/>
+        <FontIcon x:Name="FolderIcon" x:Load="{x:Bind IsFolder}" Glyph="&#xE8D5;" FontFamily="Segoe MDL2 Assets" Foreground="#ffeaa3"/>
+        <FontIcon x:Name="EmptyFileIcon" x:Load="{x:Bind IsEmptyImage}" Glyph="&#xE7C3;" FontFamily="Segoe MDL2 Assets"/>
+        <TextBox MinHeight="0" x:FieldModifier="public" x:Name="CellTextField" Text="{x:Bind CellText, Mode=OneWay}" IsReadOnly="True" x:Load="{x:Bind IsEditing, Mode=OneWay}"/>
+        <Image x:Load="{x:Bind IsThumbnailedFile}" Width="20" Height="20" x:Name="CellIcon" x:FieldModifier="public" Source="{x:Bind CellImage, Mode=OneWay}"/>
         <TextBlock TextTrimming="CharacterEllipsis" HorizontalAlignment="Stretch" Padding="8,0,8,4" VerticalAlignment="Center" Text="{x:Bind CellText, Mode=OneWay}"/>
     </Grid>
 </UserControl>

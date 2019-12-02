@@ -9,7 +9,7 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Border IsHitTestVisible="True" x:Name="HeaderBorder" BorderBrush="Gray" BorderThickness="0,0,0.5,0">
+    <Border IsHitTestVisible="True" x:Name="HeaderBorder" BorderBrush="LightGray" BorderThickness="0,0,0.5,0">
         <Grid HorizontalAlignment="Stretch" Background="Transparent" Width="{x:Bind InitialWidthProp}">
             <Grid.RenderTransform>
                 <ScaleTransform x:Name="scaleTransform"/>

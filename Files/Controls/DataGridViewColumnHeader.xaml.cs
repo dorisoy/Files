@@ -25,59 +25,14 @@ namespace Files.Controls
         public int InitialWidthProp { get; set; }
         public object SortDirection { get; set; } = null;
         public bool isIconHeader { get; set; } = false;
+        public CellResizeWidth cellWidth { get; set; } = new CellResizeWidth();
 
         public DataGridViewColumnHeader()
         {
             this.InitializeComponent();
+            cellWidth.Width = Width;
         }
 
-        private void Header_ManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
-        {
-            var header = sender as Border;
-            if (Math.Abs(e.Delta.Scale) < (header.Width - 10))
-            {
-                header.Width += e.Delta.Scale;
-            }
-        }
-
-        PointerPoint StartingPoint;
-        private void HeaderBorder_PointerPressed(object sender, PointerRoutedEventArgs e)
-        {
-            StartingPoint = e.GetCurrentPoint(HeaderBorder);
-            e.Handled = true;
-        }
-
-        private void HeaderBorder_PointerMoved(object sender, PointerRoutedEventArgs e)
-        {
-            if (e.GetCurrentPoint(HeaderBorder).Properties.IsLeftButtonPressed) 
-            {
-                if (StartingPoint != null)
-                {
-                    double movement = e.GetCurrentPoint(HeaderBorder).Position.X - StartingPoint.Position.X;
-                    //double absoluteDistance = Math.Abs(movement);
-                    if ((HeaderBorder.Width + movement) >= 10)
-                    {
-                        HeaderBorder.Width += movement;
-                    }
-                    else
-                    {
-                        HeaderBorder.Width = 10;
-                    }
-                    e.Handled = true;
-                }
-            }
-        }
-
-        private void HeaderBorder_PointerEntered(object sender, PointerRoutedEventArgs e)
-        {
-            (sender as Border).BorderThickness = new Thickness(0, 0, 1, 0);
-            Window.Current.CoreWindow.PointerCursor = new CoreCursor(CoreCursorType.SizeWestEast, 2);
-        }
-
-        private void HeaderBorder_PointerExited(object sender, PointerRoutedEventArgs e)
-        {
-            (sender as Border).BorderThickness = new Thickness(0, 0, 0.5, 0);
-            Window.Current.CoreWindow.PointerCursor = new CoreCursor(CoreCursorType.Arrow, 1);
-        }
+        
     }
 }

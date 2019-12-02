@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -44,6 +45,31 @@ namespace Files.Controls
             allowedPropertyNames.Add("FileType");
             allowedPropertyNames.Add("FileSize");
             int index = 0;
+            bool isFolder = false;
+            bool isThumbnailedFile = false;
+            bool isEmptyThumbnailFile = false; 
+            if ((properties.First(x => x.Name == "FileType")).GetValue(DataContext, null).Equals("Folder"))
+            {
+                isFolder = true;
+                isThumbnailedFile = false;
+                isEmptyThumbnailFile = false;
+            }
+            else
+            {
+                if ((properties.First(x => x.Name == "FileImg")).GetValue(DataContext, null) != null)
+                {
+                    isFolder = false;
+                    isThumbnailedFile = true;
+                    isEmptyThumbnailFile = false;
+                }
+                else
+                {
+                    isFolder = false;
+                    isThumbnailedFile = false;
+                    isEmptyThumbnailFile = true;
+                }
+            }
+
             foreach (PropertyInfo property in properties)
             {
                 if (allowedPropertyNames.Contains(property.Name))
@@ -53,14 +79,23 @@ namespace Files.Controls
                     {
                         EditAllowed = true;
                     }
-                    var width = (this.Tag as ObservableCollection<DataGridViewColumnHeader>)[index].ActualWidth;
+
+                    
+                    //var width = (this.Tag as ObservableCollection<DataGridViewColumnHeader>)[index].ActualWidth;
                     selectedProperties.Add(new PropertyInfoValueItem() { 
                         PropertyName = property.Name, 
                         Value = property.GetValue(DataContext, null), 
                         isValueEditable = EditAllowed, 
-                        cellWidth = int.Parse(width.ToString().Split('.')[0]) 
+                        Index = index,
+                        IsRowFolder = isFolder,
+                        IsRowEmptyImage = isEmptyThumbnailFile,
+                        IsRowThumbnailedFile = isThumbnailedFile,
+                        CellWidth = (this.Tag as ObservableCollection<DataGridViewColumnHeader>)[index].cellWidth.Width
                     });
                     index++;
+                    isFolder = false;
+                    isThumbnailedFile = false;
+                    isEmptyThumbnailFile = false;
                 }
             }
         }
@@ -98,7 +133,36 @@ namespace Files.Controls
         public string PropertyName { get; set; }
         public object Value { get; set; }
         public bool isValueEditable { get; set; }
-        public int cellWidth { get; set; }
+        public double CellWidth { get; set; }
+        public int Index { get; set; }
+        public bool IsRowEmptyImage { get; set; } = false;
+        public bool IsRowFolder { get; set; } = false;
+        public bool IsRowThumbnailedFile { get; set; } = false;
+    }
+
+    public class CellResizeWidth : INotifyPropertyChanged
+    {
+        private double _Width;
+        public double Width
+        {
+            get
+            {
+                return _Width;
+            }
+            set
+            {
+                if(value != _Width)
+                {
+                    _Width = value;
+                    NotifyPropertyChanged("Width");
+                }
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged(string property)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        }
     }
 
     public class CellDataTemplateSelector : DataTemplateSelector

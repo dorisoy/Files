@@ -193,6 +193,12 @@ namespace Files.Controls
         private void DataGridViewControl_Loaded(object sender, RoutedEventArgs e)
         {
         }
+
+        private void DataGridViewColumnHeader_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            var resizedHeader = sender as DataGridViewColumnHeader;
+            resizedHeader.cellWidth.Width = e.NewSize.Width;
+        }
     }
 
 }
