@@ -48,7 +48,7 @@ namespace Files.Controls
             bool isFolder = false;
             bool isThumbnailedFile = false;
             bool isEmptyThumbnailFile = false; 
-            if ((properties.First(x => x.Name == "FileType")).GetValue(DataContext, null).Equals("Folder"))
+            if ((DataContext as ListedItem).FolderImg == Visibility.Visible)
             {
                 isFolder = true;
                 isThumbnailedFile = false;
@@ -56,7 +56,7 @@ namespace Files.Controls
             }
             else
             {
-                if ((properties.First(x => x.Name == "FileImg")).GetValue(DataContext, null) != null)
+                if ((DataContext as ListedItem).EmptyImgVis == Visibility.Collapsed)
                 {
                     isFolder = false;
                     isThumbnailedFile = true;
