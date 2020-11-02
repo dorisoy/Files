@@ -108,9 +108,6 @@
   <data name="StatusBarControlClearSelection.Text" xml:space="preserve">
     <value>ଚୟନ ସଫା କରନ୍ତୁ</value>
   </data>
-  <data name="StatusBarControlListView.Text" xml:space="preserve">
-    <value>ତାଲିକା ଭ୍ୟୁ</value>
-  </data>
   <data name="PropertiesModified.Text" xml:space="preserve">
     <value>ପରିବର୍ତ୍ତିତ:</value>
   </data>
@@ -446,9 +443,6 @@
   </data>
   <data name="StatusBarControlGridViewSmall.Text" xml:space="preserve">
     <value>ଗ୍ରୀଡ୍ ଭ୍ୟୁ (ଛୋଟ)</value>
-  </data>
-  <data name="StatusBarControlTilesView.Text" xml:space="preserve">
-    <value>ଟାଇଲ୍ସ ଭ୍ୟୁ</value>
   </data>
   <data name="PropertiesDialogOKButton.Content" xml:space="preserve">
     <value>ଠିକ୍ ଅଛି</value>

@@ -737,14 +737,14 @@ namespace Files
 
         public void GridViewSizeIncrease(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            AppSettings.GridViewSize = AppSettings.GridViewSize + 25; // Make Larger
+            AppSettings.ContentSize = AppSettings.ContentSize + 25; // Make Larger
             if (args != null)
                 args.Handled = true;
         }
 
         public void GridViewSizeDecrease(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            AppSettings.GridViewSize = AppSettings.GridViewSize - 25; // Make Smaller
+            AppSettings.ContentSize = AppSettings.ContentSize - 25; // Make Smaller
             if (args != null)
                 args.Handled = true;
         }

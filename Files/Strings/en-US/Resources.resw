@@ -1158,4 +1158,10 @@
   <data name="SettingsExperimentalSortPinnedFiItemsByDragging.Header" xml:space="preserve">
     <value>Enable reordering items on the sidebar</value>
   </data>
+  <data name="StatusBarControlGridView.Text" xml:space="preserve">
+    <value>Grid View</value>
+  </data>
+  <data name="StatusBarControlLayoutModeSelector.Text" xml:space="preserve">
+    <value>Pick a layout mode</value>
+  </data>
 </root>

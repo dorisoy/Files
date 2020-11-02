@@ -102,9 +102,6 @@
   <data name="StatusBarControlClearSelection.Text" xml:space="preserve">
     <value>Deseleziona tutto</value>
   </data>
-  <data name="StatusBarControlListView.Text" xml:space="preserve">
-    <value>Dettagli</value>
-  </data>
   <data name="PropertiesModified.Text" xml:space="preserve">
     <value>Modificato il:</value>
   </data>
@@ -440,9 +437,6 @@
   </data>
   <data name="StatusBarControlGridViewSmall.Text" xml:space="preserve">
     <value>Icone piccole</value>
-  </data>
-  <data name="StatusBarControlTilesView.Text" xml:space="preserve">
-    <value>Elenco</value>
   </data>
   <data name="PropertiesDialogOKButton.Content" xml:space="preserve">
     <value>OK</value>

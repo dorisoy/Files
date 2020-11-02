@@ -108,9 +108,6 @@
   <data name="StatusBarControlClearSelection.Text" xml:space="preserve">
     <value>चयन खाली करें</value>
   </data>
-  <data name="StatusBarControlListView.Text" xml:space="preserve">
-    <value>सूची व्यू</value>
-  </data>
   <data name="PropertiesModified.Text" xml:space="preserve">
     <value>संशोधित:</value>
   </data>
@@ -446,9 +443,6 @@
   </data>
   <data name="StatusBarControlGridViewSmall.Text" xml:space="preserve">
     <value>ग्रिड व्यू (छोटा)</value>
-  </data>
-  <data name="StatusBarControlTilesView.Text" xml:space="preserve">
-    <value>टाइल्स व्यू</value>
   </data>
   <data name="PropertiesDialogOKButton.Content" xml:space="preserve">
     <value>ठीक है</value>

@@ -505,7 +505,7 @@
 
         <DataTemplate x:Name="GridViewBrowserTemplate" x:DataType="local2:ListedItem">
             <Grid
-                Width="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}"
+                Width="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}"
                 Height="Auto"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
@@ -524,8 +524,8 @@
                 </Grid.RowDefinitions>
                 <Grid
                     Grid.Row="0"
-                    Width="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}"
-                    Height="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}"
+                    Width="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}"
+                    Height="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}"
                     Opacity="{x:Bind IsDimmed, Converter={StaticResource BoolToOpacityConverter}, Mode=OneWay}"
                     Tag="ItemImage">
                     <Grid
@@ -555,21 +555,19 @@
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         x:Load="{x:Bind LoadUnknownTypeGlyph, Mode=OneWay}">
-                        <Viewbox MaxWidth="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}" MaxHeight="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}">
+                        <Viewbox MaxWidth="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}" MaxHeight="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}">
                             <SymbolIcon Symbol="Page2" />
                         </Viewbox>
                     </Grid>
                     <Grid
                         x:Name="IconOverlay"
+                        Width="64"
+                        Height="64"
                         Padding="12"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
-                        Width="64"
-                        Height="64"
                         x:Load="True">
-                        <Image
-                            Source="{x:Bind IconOverlay, Mode=OneWay}"
-                            Stretch="Uniform" />
+                        <Image Source="{x:Bind IconOverlay, Mode=OneWay}" Stretch="Uniform" />
                     </Grid>
                     <Grid
                         x:Name="WebShortcutGlyph"
@@ -577,7 +575,7 @@
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         x:Load="{x:Bind IsLinkItem, Mode=OneWay}">
-                        <Viewbox MaxWidth="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}" MaxHeight="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}">
+                        <Viewbox MaxWidth="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}" MaxHeight="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}">
                             <FontIcon
                                 FontFamily="{StaticResource FluentUIGlyphs}"
                                 FontSize="28"
@@ -602,7 +600,7 @@
                 </Grid>
                 <Grid
                     Grid.Row="1"
-                    MaxWidth="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}"
+                    MaxWidth="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}"
                     Margin="5,0,5,10"
                     HorizontalAlignment="Center">
                     <Grid.ColumnDefinitions>
@@ -634,7 +632,7 @@
                     x:Load="False">
                     <TextBox
                         x:Name="GridViewTextBoxItemName"
-                        Width="{x:Bind local:App.AppSettings.GridViewSize, Mode=OneWay}"
+                        Width="{x:Bind local:App.AppSettings.ContentSize, Mode=OneWay}"
                         Margin="0"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
@@ -721,15 +719,13 @@
                     </Grid>
                     <Grid
                         x:Name="IconOverlay"
+                        Width="48"
+                        Height="48"
                         Padding="8"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
-                        Width="48"
-                        Height="48"
                         x:Load="True">
-                        <Image
-                            Source="{x:Bind IconOverlay, Mode=OneWay}"
-                            Stretch="Uniform" />
+                        <Image Source="{x:Bind IconOverlay, Mode=OneWay}" Stretch="Uniform" />
                     </Grid>
                     <Grid
                         x:Name="WebShortcutGlyph"

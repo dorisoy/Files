@@ -134,10 +134,6 @@
           <source>Clear Selection</source>
           <target state="translated">Kijelölés megszűntetése</target>
         </trans-unit>
-        <trans-unit id="StatusBarControlListView.Text" translate="yes" xml:space="preserve">
-          <source>List View</source>
-          <target state="translated">Részletek</target>
-        </trans-unit>
         <trans-unit id="PropertiesModified.Text" translate="yes" xml:space="preserve">
           <source>Modified:</source>
           <target state="translated">Módosítás dátuma:</target>
@@ -609,10 +605,6 @@
         <trans-unit id="StatusBarControlGridViewSmall.Text" translate="yes" xml:space="preserve">
           <source>Grid View (Small)</source>
           <target state="translated">Kis ikonok</target>
-        </trans-unit>
-        <trans-unit id="StatusBarControlTilesView.Text" translate="yes" xml:space="preserve">
-          <source>Tiles View</source>
-          <target state="translated">Lista</target>
         </trans-unit>
         <trans-unit id="PropertiesDialogOKButton.Content" translate="yes" xml:space="preserve">
           <source>OK</source>
@@ -1393,6 +1385,22 @@
         <trans-unit id="SettingsExperimentalSortPinnedFiItemsByDragging.Header" translate="yes" xml:space="preserve">
           <source>Enable reordering items on the sidebar</source>
           <target state="new">Enable reordering items on the sidebar</target>
+        </trans-unit>
+        <trans-unit id="StatusBarControlListView.Text" translate="yes" xml:space="preserve">
+          <source>List View</source>
+          <target state="new">List View</target>
+        </trans-unit>
+        <trans-unit id="StatusBarControlTilesView.Text" translate="yes" xml:space="preserve">
+          <source>Tiles View</source>
+          <target state="new">Tiles View</target>
+        </trans-unit>
+        <trans-unit id="StatusBarControlGridView.Text" translate="yes" xml:space="preserve">
+          <source>Grid View</source>
+          <target state="new">Grid View</target>
+        </trans-unit>
+        <trans-unit id="StatusBarControlLayoutModeSelector.Text" translate="yes" xml:space="preserve">
+          <source>Pick a layout mode</source>
+          <target state="new">Pick a layout mode</target>
         </trans-unit>
       </group>
     </body>

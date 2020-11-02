@@ -108,9 +108,6 @@
   <data name="StatusBarControlClearSelection.Text" xml:space="preserve">
     <value>Kijelölés megszűntetése</value>
   </data>
-  <data name="StatusBarControlListView.Text" xml:space="preserve">
-    <value>Részletek</value>
-  </data>
   <data name="PropertiesModified.Text" xml:space="preserve">
     <value>Módosítás dátuma:</value>
   </data>
@@ -464,9 +461,6 @@
   </data>
   <data name="StatusBarControlGridViewSmall.Text" xml:space="preserve">
     <value>Kis ikonok</value>
-  </data>
-  <data name="StatusBarControlTilesView.Text" xml:space="preserve">
-    <value>Lista</value>
   </data>
   <data name="PropertiesDialogOKButton.Content" xml:space="preserve">
     <value>OK</value>

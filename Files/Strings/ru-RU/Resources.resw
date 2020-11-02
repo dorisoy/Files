@@ -273,9 +273,6 @@
   <data name="StatusBarControlClearSelection.Text" xml:space="preserve">
     <value>Очистить выделение</value>
   </data>
-  <data name="StatusBarControlListView.Text" xml:space="preserve">
-    <value>Таблица</value>
-  </data>
   <data name="SidebarSettings.Text" xml:space="preserve">
     <value>Параметры</value>
   </data>
@@ -437,9 +434,6 @@
   </data>
   <data name="StatusBarControlGridViewSmall.Text" xml:space="preserve">
     <value>Обычные значки</value>
-  </data>
-  <data name="StatusBarControlTilesView.Text" xml:space="preserve">
-    <value>Плитка</value>
   </data>
   <data name="PropertiesDialogOKButton.Content" xml:space="preserve">
     <value>ОК</value>

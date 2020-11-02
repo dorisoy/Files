@@ -264,9 +264,6 @@
   <data name="ModernNavigationToolbaNewTextDocument.Text" xml:space="preserve">
     <value>Documento de Texto</value>
   </data>
-  <data name="StatusBarControlListView.Text" xml:space="preserve">
-    <value>Detalles</value>
-  </data>
   <data name="SidebarSettings.Text" xml:space="preserve">
     <value>Ajustes</value>
   </data>
@@ -440,9 +437,6 @@
   </data>
   <data name="StatusBarControlGridViewSmall.Text" xml:space="preserve">
     <value>Iconos pequeños</value>
-  </data>
-  <data name="StatusBarControlTilesView.Text" xml:space="preserve">
-    <value>Iconos</value>
   </data>
   <data name="PropertiesDialogOKButton.Content" xml:space="preserve">
     <value>Aceptar</value>
