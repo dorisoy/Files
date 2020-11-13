@@ -33,7 +33,7 @@ namespace Files.UserControls.MultitaskingControl
             Loaded += MultitaskingControl_Loaded;
         }
 
-        public ObservableCollection<TabItem> Items => MainPage.AppInstances;
+        public virtual IList<object> Items { get; }
 
         private void MultitaskingControl_CurrentInstanceChanged(object sender, CurrentInstanceChangedEventArgs e)
         {
@@ -48,10 +48,10 @@ namespace Files.UserControls.MultitaskingControl
 
         private async Task SetSelectedTabInfoAsync(string tabHeader, string currentPath = null)
         {
-            var selectedTabItem = MainPage.AppInstances[App.InteractionViewModel.TabStripSelectedIndex];
+            var selectedTabItem = Items[App.InteractionViewModel.TabStripSelectedIndex] as TabItem;
             selectedTabItem.AllowStorageItemDrop = CurrentSelectedAppInstance.InstanceViewModel.IsPageTypeNotHome;
 
-            MainPage.AppInstances[App.InteractionViewModel.TabStripSelectedIndex].Path = currentPath;
+            selectedTabItem.Path = currentPath;
 
             string tabLocationHeader;
             Microsoft.UI.Xaml.Controls.FontIconSource fontIconSource = new Microsoft.UI.Xaml.Controls.FontIconSource();
@@ -172,12 +172,16 @@ namespace Files.UserControls.MultitaskingControl
 
         protected void TabStrip_TabCloseRequested(TabView sender, TabViewTabCloseRequestedEventArgs args)
         {
+            // Cleanup resources for the closed tab
+            ((((args.Item as TabItem).Content as Grid).Children[0] as Frame).Content as IShellPage)?.Dispose();
+
             RemoveTab(args.Item as TabItem);
         }
 
-        protected void TabView_AddTabButtonClick(TabView sender, object args)
+        protected async void TabView_AddTabButtonClick(TabView sender, object args)
         {
-            MainPage.AddNewTab();
+            sender.TabItems.Add(await MainPage.AddNewTab());
+            
         }
 
         public void MultitaskingControl_Loaded(object sender, RoutedEventArgs e)
@@ -191,9 +195,9 @@ namespace Files.UserControls.MultitaskingControl
             await SetSelectedTabInfoAsync(tabHeader, workingDirectoryPath);
         }
 
-        public static T GetCurrentSelectedTabInstance<T>()
+        public T GetCurrentSelectedTabInstance<T>()
         {
-            var selectedTabContent = MainPage.AppInstances[App.InteractionViewModel.TabStripSelectedIndex].Content as Grid;
+            var selectedTabContent = (Items[App.InteractionViewModel.TabStripSelectedIndex] as TabItem).Content as Grid;
             foreach (UIElement uiElement in selectedTabContent.Children)
             {
                 if (uiElement.GetType() == typeof(Frame))
@@ -207,7 +211,7 @@ namespace Files.UserControls.MultitaskingControl
         public List<T> GetAllTabInstances<T>()
         {
             var instances = new List<T>();
-            foreach (TabItem ti in MainPage.AppInstances)
+            foreach (TabItem ti in Items)
             {
                 instances.Add((T)((ti.Content as Grid).Children.First(element => element.GetType() == typeof(Frame)) as Frame).Content);
             }
@@ -225,7 +229,7 @@ namespace Files.UserControls.MultitaskingControl
                 }
                 else
                 {
-                    MainPage.AddNewTab();
+                    TabView_AddTabButtonClick(null, null);
                 }
             }
             else if (Items.Count > 1)

@@ -51,7 +51,6 @@ namespace Files.Views
             }
         }
 
-        public static ObservableCollection<TabItem> AppInstances = new ObservableCollection<TabItem>();
         public static ObservableCollection<INavigationControlItem> SideBarItems = new ObservableCollection<INavigationControlItem>();
 
         public MainPage()
@@ -69,24 +68,12 @@ namespace Files.Views
                 FlowDirection = FlowDirection.RightToLeft;
             }
             AllowDrop = true;
-            AppInstances.CollectionChanged += AppInstances_CollectionChanged;
         }
 
-        private void AppInstances_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        public static string initialNavArgs = null;
+        protected override void OnNavigatedTo(NavigationEventArgs eventArgs)
         {
-            if (e.OldItems != null)
-            {
-                foreach (var removedTab in e.OldItems)
-                {
-                    // Cleanup resources for the closed tab
-                    ((((removedTab as TabItem).Content as Grid).Children[0] as Frame).Content as IShellPage)?.Dispose();
-                }
-            }
-        }
-
-        protected override async void OnNavigatedTo(NavigationEventArgs eventArgs)
-        {
-            var navArgs = eventArgs.Parameter?.ToString();
+            initialNavArgs = eventArgs.Parameter?.ToString();
             if (eventArgs.NavigationMode != NavigationMode.Back)
             {
                 App.AppSettings = new SettingsViewModel();
@@ -94,86 +81,15 @@ namespace Files.Views
                 App.SidebarPinnedController = new SidebarPinnedController();
 
                 Helpers.ThemeHelper.Initialize();
-
-                if (string.IsNullOrEmpty(navArgs))
-                {
-                    try
-                    {
-                        if (App.AppSettings.ResumeAfterRestart)
-                        {
-                            App.AppSettings.ResumeAfterRestart = false;
-
-                            foreach (string path in App.AppSettings.LastSessionPages)
-                            {
-                                await AddNewTabByPathAsync(typeof(ModernShellPage), path);
-                            }
-
-                            if (!App.AppSettings.ContinueLastSessionOnStartUp)
-                            {
-                                App.AppSettings.LastSessionPages = null;
-                            }
-                        }
-                        else if (App.AppSettings.OpenASpecificPageOnStartup)
-                        {
-                            if (App.AppSettings.PagesOnStartupList != null)
-                            {
-                                foreach (string path in App.AppSettings.PagesOnStartupList)
-                                {
-                                    await AddNewTabByPathAsync(typeof(ModernShellPage), path);
-                                }
-                            }
-                            else
-                            {
-                                AddNewTab();
-                            }
-                        }
-                        else if (App.AppSettings.ContinueLastSessionOnStartUp)
-                        {
-                            if (App.AppSettings.LastSessionPages != null)
-                            {
-                                foreach (string path in App.AppSettings.LastSessionPages)
-                                {
-                                    await AddNewTabByPathAsync(typeof(ModernShellPage), path);
-                                }
-                                App.AppSettings.LastSessionPages = new string[] { "NewTab".GetLocalized() };
-                            }
-                            else
-                            {
-                                AddNewTab();
-                            }
-                        }
-                        else
-                        {
-                            AddNewTab();
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        AddNewTab();
-                    }
-                }
-                else if (string.IsNullOrEmpty(navArgs))
-                {
-                    AddNewTab();
-                }
-                else
-                {
-                    await AddNewTabByPathAsync(typeof(ModernShellPage), navArgs);
-                }
-
-                // Initial setting of SelectedTabItem
-                Frame rootFrame = Window.Current.Content as Frame;
-                var mainView = rootFrame.Content as MainPage;
-                mainView.SelectedTabItem = AppInstances[App.InteractionViewModel.TabStripSelectedIndex];
             }
         }
 
-        public static async void AddNewTab()
+        public static async Task<TabItem> AddNewTab()
         {
-            await AddNewTabByPathAsync(typeof(ModernShellPage), "NewTab".GetLocalized());
+            return await AddNewTabByPathAsync(typeof(ModernShellPage), "NewTab".GetLocalized());
         }
 
-        public static async Task AddNewTabByPathAsync(Type type, string path, int atIndex = -1)
+        public static async Task<TabItem> AddNewTabByPathAsync(Type type, string path, int atIndex = -1)
         {
             string tabLocationHeader = null;
             Microsoft.UI.Xaml.Controls.FontIconSource fontIconSource = new Microsoft.UI.Xaml.Controls.FontIconSource();
@@ -229,7 +145,7 @@ namespace Files.Views
                 }
             }
 
-            TabItem tabItem = new TabItem()
+            var tabItem = new TabItem()
             {
                 Header = tabLocationHeader,
                 Path = path,
@@ -253,9 +169,10 @@ namespace Files.Views
                 IconSource = fontIconSource,
                 Description = null
             };
-            AppInstances.Insert(atIndex == -1 ? AppInstances.Count : atIndex, tabItem);
+
             var tabViewItemFrame = (tabItem.Content as Grid).Children[0] as Frame;
             tabViewItemFrame.Loaded += TabViewItemFrame_Loaded;
+            return tabItem;
         }
 
         private static void TabViewItemFrame_Loaded(object sender, RoutedEventArgs e)
@@ -315,12 +232,12 @@ namespace Files.Views
 
                 case VirtualKey.Number9:
                     // Select the last tab
-                    indexToSelect = AppInstances.Count - 1;
+                    indexToSelect = MultitaskingControl.Items.Count - 1;
                     break;
             }
 
             // Only select the tab if it is in the list
-            if (indexToSelect < AppInstances.Count)
+            if (indexToSelect < MultitaskingControl.Items.Count)
             {
                 App.InteractionViewModel.TabStripSelectedIndex = indexToSelect;
             }
@@ -329,19 +246,25 @@ namespace Files.Views
 
         private async void CloseSelectedTabKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
         {
-            if (AppInstances.Count == 1)
+            if (MultitaskingControl.Items.Count == 1)
             {
                 await ApplicationView.GetForCurrentView().TryConsolidateAsync();
             }
             else
             {
-                if (App.InteractionViewModel.TabStripSelectedIndex >= AppInstances.Count)
+                if (App.InteractionViewModel.TabStripSelectedIndex >= MultitaskingControl.Items.Count)
                 {
-                    AppInstances.RemoveAt(AppInstances.Count - 1);
+                    var item = MultitaskingControl.Items.Last() as TabItem;
+                    // Cleanup resources for the closed tab
+                    (((item.Content as Grid).Children[0] as Frame).Content as IShellPage)?.Dispose();
+                    MultitaskingControl.Items.RemoveAt(MultitaskingControl.Items.Count - 1);
                 }
                 else
                 {
-                    AppInstances.RemoveAt(App.InteractionViewModel.TabStripSelectedIndex);
+                    var item = MultitaskingControl.Items[App.InteractionViewModel.TabStripSelectedIndex] as TabItem;
+                    // Cleanup resources for the closed tab
+                    (((item.Content as Grid).Children[0] as Frame).Content as IShellPage)?.Dispose();
+                    MultitaskingControl.Items.RemoveAt(App.InteractionViewModel.TabStripSelectedIndex);
                 }
             }
             args.Handled = true;
@@ -353,9 +276,97 @@ namespace Files.Views
             args.Handled = true;
         }
 
-        private void HorizontalMultitaskingControl_Loaded(object sender, RoutedEventArgs e)
+        private async void HorizontalMultitaskingControl_Loaded(object sender, RoutedEventArgs e)
         {
-            MultitaskingControl = HorizontalMultitaskingControl;
+            if (MultitaskingControl == null)
+            {
+                MultitaskingControl = HorizontalMultitaskingControl;
+             
+                if (string.IsNullOrEmpty(initialNavArgs))
+                {
+                    try
+                    {
+                        if (App.AppSettings.ResumeAfterRestart)
+                        {
+                            App.AppSettings.ResumeAfterRestart = false;
+
+                            foreach (string path in App.AppSettings.LastSessionPages)
+                            {
+                                await AddNewTabByPathAsync(typeof(ModernShellPage), path);
+                            }
+
+                            if (!App.AppSettings.ContinueLastSessionOnStartUp)
+                            {
+                                App.AppSettings.LastSessionPages = null;
+                            }
+                        }
+                        else if (App.AppSettings.OpenASpecificPageOnStartup)
+                        {
+                            if (App.AppSettings.PagesOnStartupList != null)
+                            {
+                                foreach (string path in App.AppSettings.PagesOnStartupList)
+                                {
+                                    await AddNewTabByPathAsync(typeof(ModernShellPage), path);
+                                }
+                            }
+                            else
+                            {
+                                MultitaskingControl.Items.Add(await AddNewTab());
+                            }
+                        }
+                        else if (App.AppSettings.ContinueLastSessionOnStartUp)
+                        {
+                            if (App.AppSettings.LastSessionPages != null)
+                            {
+                                foreach (string path in App.AppSettings.LastSessionPages)
+                                {
+                                    await AddNewTabByPathAsync(typeof(ModernShellPage), path);
+                                }
+                                App.AppSettings.LastSessionPages = new string[] { "NewTab".GetLocalized() };
+                            }
+                            else
+                            {
+                                MultitaskingControl.Items.Add(await AddNewTab());
+                            }
+                        }
+                        else
+                        {
+                            MultitaskingControl.Items.Add(await AddNewTab());
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        MultitaskingControl.Items.Add(await AddNewTab());
+                    }
+                }
+                else if (string.IsNullOrEmpty(initialNavArgs))
+                {
+                    MultitaskingControl.Items.Add(await AddNewTab());
+                }
+                else
+                {
+                    await AddNewTabByPathAsync(typeof(ModernShellPage), initialNavArgs);
+                }
+
+                // Initial setting of SelectedTabItem
+                Frame rootFrame = Window.Current.Content as Frame;
+                var mainView = rootFrame.Content as MainPage;
+                mainView.SelectedTabItem = MultitaskingControl.Items[App.InteractionViewModel.TabStripSelectedIndex] as TabItem;
+
+            }
+            else
+            {
+                if (MultitaskingControl.Items.Count > 0)
+                {
+                    HorizontalMultitaskingControl.Items.Clear();
+                    foreach (TabItem ti in MultitaskingControl.Items)
+                    {
+                        HorizontalMultitaskingControl.Items.Add(ti);
+                    }
+                }
+
+                MultitaskingControl = HorizontalMultitaskingControl;
+            }
         }
     }
 }

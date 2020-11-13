@@ -4,6 +4,7 @@ using Files.Views.Pages;
 using Microsoft.Toolkit.Uwp.Extensions;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
@@ -17,6 +18,8 @@ namespace Files.UserControls.MultitaskingControl
         private readonly DispatcherTimer tabHoverTimer = new DispatcherTimer();
         private TabViewItem hoveredTabViewItem = null;
 
+        public override IList<object> Items => VerticalTabView.TabItems;
+
         public VerticalTabViewControl()
         {
             InitializeComponent();
@@ -29,7 +32,7 @@ namespace Files.UserControls.MultitaskingControl
             switch (args.CollectionChange)
             {
                 case Windows.Foundation.Collections.CollectionChange.ItemRemoved:
-                    App.InteractionViewModel.TabStripSelectedIndex = Items.IndexOf(VerticalTabView.SelectedItem as TabItem);
+                    App.InteractionViewModel.TabStripSelectedIndex = base.Items.IndexOf(VerticalTabView.SelectedItem as TabItem);
                     break;
 
                 case Windows.Foundation.Collections.CollectionChange.ItemInserted:

@@ -13,7 +13,7 @@ namespace Files.UserControls.MultitaskingControl
 
         event CurrentInstanceChangedEventHandler CurrentInstanceChanged;
 
-        ObservableCollection<TabItem> Items { get; }
+        IList<object> Items { get; }
 
         void MultitaskingControl_Loaded(object sender, RoutedEventArgs e);
     }

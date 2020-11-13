@@ -3,6 +3,7 @@ using Files.Controllers;
 using Files.Controls;
 using Files.Filesystem;
 using Files.Helpers;
+using Files.UserControls.MultitaskingControl;
 using Files.View_Models;
 using Files.Views;
 using Microsoft.AppCenter;
@@ -312,7 +313,7 @@ namespace Files
 
         public static void SaveSessionTabs() // Enumerates through all tabs and gets the Path property and saves it to AppSettings.LastSessionPages
         {
-            AppSettings.LastSessionPages = MainPage.AppInstances.DefaultIfEmpty().Select(tab => tab != null ? tab.Path ?? "NewTab".GetLocalized() : "NewTab".GetLocalized()).ToArray();
+            AppSettings.LastSessionPages = MainPage.MultitaskingControl.Items.DefaultIfEmpty().Select(tab => (TabItem)tab != null ? ((TabItem)tab).Path ?? "NewTab".GetLocalized() : "NewTab".GetLocalized()).ToArray();
         }
 
         // Occurs when an exception is not handled on the UI thread.

@@ -5,7 +5,9 @@ using Files.Views.Pages;
 using Microsoft.Toolkit.Uwp.Extensions;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -21,6 +23,8 @@ namespace Files.UserControls.MultitaskingControl
         private TabViewItem hoveredTabViewItem = null;
 
         private SettingsViewModel AppSettings => App.AppSettings;
+
+        public override IList<object> Items => HorizontalTabView.TabItems;
 
         public HorizontalMultitaskingControl()
         {
@@ -189,6 +193,22 @@ namespace Files.UserControls.MultitaskingControl
             {
                 sender.TabItems.Insert(indexOfTabViewItem, args.Tab);
                 sender.SelectedIndex = selectedTabViewItemIndex;
+            }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            HorizontalTabView.TabItems.Clear();
+            Items.Clear();
+
+        }
+
+        private async void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            for(int x = 0; x < 20; x++)
+            {
+                HorizontalTabView.TabItems.Add(await MainPage.AddNewTab());
+                await Task.Delay(500);
             }
         }
     }

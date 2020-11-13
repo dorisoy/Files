@@ -786,7 +786,6 @@
             TabDragStarting="TabStrip_TabDragStarting"
             TabDroppedOutside="TabStrip_TabDroppedOutside"
             TabItemsChanged="HorizontalTabView_TabItemsChanged"
-            TabItemsSource="{x:Bind Items, Mode=OneWay}"
             TabStripDragOver="TabStrip_TabStripDragOver"
             TabStripDrop="TabStrip_TabStripDrop"
             TabWidthMode="Equal">
@@ -805,6 +804,12 @@
                         ToolTipService.ToolTip="{x:Null}" />
                 </DataTemplate>
             </muxc:TabView.TabItemTemplate>
+            <muxc:TabView.TabStripFooter>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Click="Button_Click_1" Content="Start testing" />
+                    <Button Click="Button_Click" Content="Clear all" />
+                </StackPanel>
+            </muxc:TabView.TabStripFooter>
         </muxc:TabView>
     </Grid>
 </local:BaseMultitaskingControl>

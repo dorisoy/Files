@@ -1,5 +1,6 @@
 ﻿using Files.Filesystem;
 using Files.Interacts;
+using Files.UserControls.MultitaskingControl;
 using Files.View_Models;
 using Files.Views;
 using Files.Views.Pages;
@@ -716,9 +717,97 @@ namespace Files.UserControls
             ToolbarFlyoutOpened?.Invoke(this, new ToolbarFlyoutOpenedEventArgs() { OpenedFlyout = sender as MenuFlyout });
         }
 
-        private void VerticalTabStripInvokeButton_Loaded(object sender, RoutedEventArgs e)
+        private async void VerticalTabStripInvokeButton_Loaded(object sender, RoutedEventArgs e)
         {
-            MainPage.MultitaskingControl = VerticalTabs;
+            if (MultitaskingControl == null)
+            {
+                MainPage.MultitaskingControl = VerticalTabs;
+
+                if (string.IsNullOrEmpty(MainPage.initialNavArgs))
+                {
+                    try
+                    {
+                        if (App.AppSettings.ResumeAfterRestart)
+                        {
+                            App.AppSettings.ResumeAfterRestart = false;
+
+                            foreach (string path in App.AppSettings.LastSessionPages)
+                            {
+                                await MainPage.AddNewTabByPathAsync(typeof(ModernShellPage), path);
+                            }
+
+                            if (!App.AppSettings.ContinueLastSessionOnStartUp)
+                            {
+                                App.AppSettings.LastSessionPages = null;
+                            }
+                        }
+                        else if (App.AppSettings.OpenASpecificPageOnStartup)
+                        {
+                            if (App.AppSettings.PagesOnStartupList != null)
+                            {
+                                foreach (string path in App.AppSettings.PagesOnStartupList)
+                                {
+                                    await MainPage.AddNewTabByPathAsync(typeof(ModernShellPage), path);
+                                }
+                            }
+                            else
+                            {
+                                MainPage.MultitaskingControl.Items.Add(await MainPage.AddNewTab());
+                            }
+                        }
+                        else if (App.AppSettings.ContinueLastSessionOnStartUp)
+                        {
+                            if (App.AppSettings.LastSessionPages != null)
+                            {
+                                foreach (string path in App.AppSettings.LastSessionPages)
+                                {
+                                    await MainPage.AddNewTabByPathAsync(typeof(ModernShellPage), path);
+                                }
+                                App.AppSettings.LastSessionPages = new string[] { "NewTab".GetLocalized() };
+                            }
+                            else
+                            {
+                                MainPage.MultitaskingControl.Items.Add(await MainPage.AddNewTab());
+                            }
+                        }
+                        else
+                        {
+                            MainPage.MultitaskingControl.Items.Add(await MainPage.AddNewTab());
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        MainPage.MultitaskingControl.Items.Add(await MainPage.AddNewTab());
+                    }
+                }
+                else if (string.IsNullOrEmpty(MainPage.initialNavArgs))
+                {
+                    MainPage.MultitaskingControl.Items.Add(await MainPage.AddNewTab());
+                }
+                else
+                {
+                    await MainPage.AddNewTabByPathAsync(typeof(ModernShellPage), MainPage.initialNavArgs);
+                }
+
+                // Initial setting of SelectedTabItem
+                Frame rootFrame = Window.Current.Content as Frame;
+                var mainView = rootFrame.Content as MainPage;
+                mainView.SelectedTabItem = MainPage.MultitaskingControl.Items[App.InteractionViewModel.TabStripSelectedIndex] as TabItem;
+
+            }
+            else
+            {
+                if (MainPage.MultitaskingControl.Items.Count > 0)
+                {
+                    VerticalTabs.Items.Clear();
+                    foreach (TabItem ti in MainPage.MultitaskingControl.Items)
+                    {
+                        VerticalTabs.Items.Add(ti);
+                    }
+                }
+
+                MainPage.MultitaskingControl = VerticalTabs;
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)

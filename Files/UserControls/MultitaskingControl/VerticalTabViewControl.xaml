@@ -638,7 +638,6 @@
             TabDragStarting="TabStrip_TabDragStarting"
             TabDroppedOutside="TabStrip_TabDroppedOutside"
             TabItemsChanged="VerticalTabView_TabItemsChanged"
-            TabItemsSource="{x:Bind Items, Mode=OneWay}"
             TabStripDragOver="TabStrip_TabStripDragOver"
             TabStripDrop="TabStrip_TabStripDrop"
             TabWidthMode="Equal">

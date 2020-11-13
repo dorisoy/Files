@@ -37,6 +37,7 @@ namespace Files.Views.Pages
         public SettingsViewModel AppSettings => App.AppSettings;
         public bool IsCurrentInstance { get; set; } = false;
         public StatusBarControl BottomStatusStripControl => StatusBarControl;
+        public INavigationControlItem SidebarSelectedItem { get => SidebarControl.SelectedSidebarItem; set => SidebarControl.SelectedSidebarItem = value; }
         public Frame ContentFrame => ItemDisplayFrame;
         private Interaction _InteractionOperations = null;
 
@@ -76,9 +77,7 @@ namespace Files.Views.Pages
             }
         }
 
-        public Control OperationsControl => null;
         public Type CurrentPageType => ItemDisplayFrame.SourcePageType;
-        public INavigationControlItem SidebarSelectedItem { get => SidebarControl.SelectedSidebarItem; set => SidebarControl.SelectedSidebarItem = value; }
         public INavigationToolbar NavigationToolbar => NavToolbar;
 
         public ModernShellPage()
@@ -208,7 +207,7 @@ namespace Files.Views.Pages
 
                         if (ItemPath.Equals("Home", StringComparison.OrdinalIgnoreCase)) // Home item
                         {
-                            if (ItemPath.Equals(SidebarSelectedItem?.Path, StringComparison.OrdinalIgnoreCase))
+                            if (ItemPath.Equals(SidebarControl.SelectedSidebarItem?.Path, StringComparison.OrdinalIgnoreCase))
                             {
                                 return; // return if already selected
                             }
@@ -818,9 +817,9 @@ namespace Files.Views.Pages
                 item = sidebarItems.FirstOrDefault(x => x.Path.Equals(Path.GetPathRoot(value), StringComparison.OrdinalIgnoreCase));
             }
 
-            if (SidebarSelectedItem != item)
+            if (SidebarControl.SelectedSidebarItem != item)
             {
-                SidebarSelectedItem = item;
+                SidebarControl.SelectedSidebarItem = item;
             }
         }
 
@@ -1028,7 +1027,10 @@ namespace Files.Views.Pages
                 var incomingSourcePageType = instanceContentFrame.ForwardStack[instanceContentFrame.ForwardStack.Count - 1].SourcePageType;
                 var Parameter = instanceContentFrame.ForwardStack[instanceContentFrame.ForwardStack.Count - 1].Parameter;
                 SelectSidebarItemFromPath(incomingSourcePageType);
+
+                // TODO: Remove this line?
                 await FilesystemViewModel.SetWorkingDirectoryAsync((Parameter as NavigationArguments).NavPathParam);
+                
                 instanceContentFrame.GoForward();
             }
         }
@@ -1065,7 +1067,7 @@ namespace Files.Views.Pages
         {
             if (incomingSourcePageType == typeof(YourHome) && incomingSourcePageType != null)
             {
-                SidebarSelectedItem = MainPage.SideBarItems.First(x => x.Path.Equals("Home"));
+                SidebarControl.SelectedSidebarItem = MainPage.SideBarItems.First(x => x.Path.Equals("Home"));
                 NavigationToolbar.PathControlDisplayText = "NewTab".GetLocalized();
             }
         }

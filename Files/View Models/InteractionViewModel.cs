@@ -1,4 +1,5 @@
-﻿using Files.View_Models;
+﻿using Files.UserControls.MultitaskingControl;
+using Files.View_Models;
 using Files.Views;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Windows.UI.Xaml;
@@ -61,7 +62,7 @@ namespace Files.Controls
                         SetProperty(ref _TabStripSelectedIndex, value);
                         Frame rootFrame = Window.Current.Content as Frame;
                         var mainView = rootFrame.Content as MainPage;
-                        mainView.SelectedTabItem = MainPage.MultitaskingControl.Items[value];
+                        mainView.SelectedTabItem = MainPage.MultitaskingControl.Items[value] as TabItem;
                     }
                 }
             }

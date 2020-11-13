@@ -17,14 +17,11 @@ namespace Files
         public CurrentInstanceViewModel InstanceViewModel { get; }
         public AppServiceConnection ServiceConnection { get; }
         public BaseLayout ContentPage { get; }
-        public Control OperationsControl { get; }
         public Type CurrentPageType { get; }
         public INavigationControlItem SidebarSelectedItem { get; set; }
         public INavigationToolbar NavigationToolbar { get; }
         public bool IsCurrentInstance { get; set; }
-
         public abstract void Clipboard_ContentChanged(object sender, object e);
-
         public abstract void Refresh_Click();
     }
 }
