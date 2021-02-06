@@ -2,6 +2,27 @@
 #include "NativeMethods.h"
 #include "base64.h"
 
+bool RunPowershellCommand(std::wstring command)
+{
+	SHELLEXECUTEINFO ShExecInfo = { 0 };
+	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfo.hwnd = NULL;
+	ShExecInfo.lpVerb = L"runas";
+	ShExecInfo.lpFile = L"powershell.exe";
+	ShExecInfo.lpParameters = command.c_str();
+	ShExecInfo.lpDirectory = NULL;
+	ShExecInfo.nShow = SW_HIDE;
+	ShExecInfo.hInstApp = NULL;
+	if (ShellExecuteEx(&ShExecInfo))
+	{
+		int res = WaitForSingleObject(ShExecInfo.hProcess, 30 * 1000);
+		CloseHandle(ShExecInfo.hProcess);
+		return res == WAIT_OBJECT_0;
+	}
+	return false;
+}
+
 std::wstring GetDisplayName(IShellItem* iItem, SIGDN flags)
 {
 	std::wstring result;

@@ -1,44 +1,41 @@
 #include "pch.h"
 #include "MsgHandler_BitLocker.h"
+#include "NativeMethods.h"
 #include <string>
 #include <sstream>
 
-bool MsgHandler_BitLocker::Unlock(LPCWSTR filepath, LPCWSTR password)
+bool MsgHandler_BitLocker::Unlock(LPCWSTR volume, LPCWSTR password)
 {
 	using namespace::std;
 
 	wstringstream strStream;
 	strStream
 		<< L"-command \"$SecureString = ConvertTo-SecureString '"
-		<< *password
-		<< L"' -AsPlainText -Force; Unlock-BitLocker - MountPoint '"
-		<< *filepath
+		<< std::wstring(password)
+		<< L"' -AsPlainText -Force; Unlock-BitLocker -MountPoint '"
+		<< std::wstring(volume)
 		<< L"' -Password $SecureString\"";
 
-	wstring args = strStream.str();
+	wstring command = strStream.str();
 
-	(void)ShellExecute(NULL, L"runas", L"powershell.exe", args.c_str(), NULL, FALSE);
-
-	return true;
+	return RunPowershellCommand(command);
 }
 
-bool MsgHandler_BitLocker::Lock(LPCWSTR filepath, LPCWSTR password)
+bool MsgHandler_BitLocker::Lock(LPCWSTR volume, LPCWSTR password)
 {
 	using namespace::std;
 
 	wstringstream strStream;
 	strStream
 		<< L"-command \"$SecureString = ConvertTo-SecureString '"
-		<< *password
-		<< L"' -AsPlainText -Force; Lock-BitLocker - MountPoint '"
-		<< *filepath
+		<< std::wstring(password)
+		<< L"' -AsPlainText -Force; Lock-BitLocker -MountPoint '"
+		<< std::wstring(volume)
 		<< L"' -Password $SecureString\"";
 
-	wstring args = strStream.str();
+	wstring command = strStream.str();
 
-	(void)ShellExecute(NULL, L"runas", L"powershell.exe", args.c_str(), NULL, FALSE);
-
-	return true;
+	return RunPowershellCommand(command);
 }
 
 IAsyncOperation<bool> MsgHandler_BitLocker::ParseArgumentsAsync(const AppServiceManager& manager, const AppServiceRequestReceivedEventArgs& args)
@@ -51,24 +48,16 @@ IAsyncOperation<bool> MsgHandler_BitLocker::ParseArgumentsAsync(const AppService
 
 		if (arguments == L"Bitlocker")
 		{
-			hstring action = args.Request().Message().Lookup(L"Action").as<hstring>();
-			hstring filepath = args.Request().Message().Lookup(L"FilePath").as<hstring>();
-			hstring password = args.Request().Message().Lookup(L"Password").as<hstring>();
+			hstring action = args.Request().Message().Lookup(L"action").as<hstring>();
+			hstring filepath = args.Request().Message().Lookup(L"drive").as<hstring>();
+			hstring password = args.Request().Message().Lookup(L"password").as<hstring>();
 
 			if (action == L"Unlock")
 			{
 				if (Unlock(filepath.c_str(), password.c_str()))
 				{
 					ValueSet response;
-					response.Insert(L"Bitlocker", winrt::box_value(L"Success"));
-
-					co_await args.Request().SendResponseAsync(response);
-				}
-				else
-				{
-					ValueSet response;
-					response.Insert(L"Bitlocker", winrt::box_value(L"Failed"));
-
+					response.Insert(L"Bitlocker", winrt::box_value(L"Unlock"));
 					co_await args.Request().SendResponseAsync(response);
 				}
 
@@ -79,15 +68,7 @@ IAsyncOperation<bool> MsgHandler_BitLocker::ParseArgumentsAsync(const AppService
 				if (Lock(filepath.c_str(), password.c_str()))
 				{
 					ValueSet response;
-					response.Insert(L"Bitlocker", winrt::box_value(L"Success"));
-
-					co_await args.Request().SendResponseAsync(response);
-				}
-				else
-				{
-					ValueSet response;
-					response.Insert(L"Bitlocker", winrt::box_value(L"Failed"));
-
+					response.Insert(L"Bitlocker", winrt::box_value(L"Lock"));
 					co_await args.Request().SendResponseAsync(response);
 				}
 

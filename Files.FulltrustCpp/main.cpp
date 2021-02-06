@@ -3,6 +3,7 @@
 #include "MsgHandler_ContextMenu.h"
 #include "MsgHandler_FileOperations.h"
 #include "MsgHandler_RecycleBin.h"
+#include "MsgHandler_BitLocker.h"
 
 using namespace winrt;
 
@@ -42,6 +43,8 @@ int main()
 		manager->Register(&foHdl);
 		MsgHandler_RecycleBin rbHdl;
 		manager->Register(&rbHdl);
+		MsgHandler_BitLocker btHdl;
+		manager->Register(&btHdl);
 
 		manager->Loop();
 		delete manager;
