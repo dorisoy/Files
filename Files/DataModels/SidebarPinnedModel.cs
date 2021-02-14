@@ -1,24 +1,35 @@
-﻿using Files.Filesystem;
+﻿using Files.Controllers;
+using Files.Filesystem;
 using Files.ViewModels;
 using Files.Views;
 using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Core;
+using Windows.UI.Core;
 using Windows.UI.Xaml.Media;
 
 namespace Files.DataModels
 {
     public class SidebarPinnedModel
     {
+        private SidebarPinnedController controller;
+
         [JsonIgnore]
         public SettingsViewModel AppSettings => App.AppSettings;
 
         [JsonProperty("items")]
         public List<string> Items { get; set; } = new List<string>();
+
+        public void SetController(SidebarPinnedController controller)
+        {
+            this.controller = controller;
+        }
 
         /// <summary>
         /// Adds the default items to the navigation page
@@ -137,10 +148,10 @@ namespace Files.DataModels
                 || (uint)ex.HResult == 0x8007000F // The system cannot find the drive specified
                 || (uint)ex.HResult == 0x800700A1) // The specified path is invalid (usually an mtp device was disconnected)
             {
-                Debug.WriteLine("An error occured while swapping pinned items in the navigation sidebar. " + ex.Message);
+                Debug.WriteLine($"An error occured while swapping pinned items in the navigation sidebar. {ex.Message}");
                 this.Items = sidebarItemsBackup;
                 this.RemoveStaleSidebarItems();
-                this.AddAllItemsToSidebar();
+                _ = this.AddAllItemsToSidebar();
             }
         }
 
@@ -168,7 +179,7 @@ namespace Files.DataModels
         /// <summary>
         /// Saves the model
         /// </summary>
-        public void Save() => App.SidebarPinnedController.SaveModel();
+        public void Save() => controller?.SaveModel();
 
         /// <summary>
         /// Adds the item do the navigation sidebar
@@ -179,7 +190,7 @@ namespace Files.DataModels
         {
             var item = await FilesystemTasks.Wrap(() => DrivesManager.GetRootFromPathAsync(path));
             var res = await FilesystemTasks.Wrap(() => StorageFileExtensions.DangerousGetFolderFromPathAsync(path, item));
-            if (res)
+            if (res || (FilesystemResult)ItemViewModel.CheckFolderAccessWithWin32(path))
             {
                 int insertIndex = MainPage.SideBarItems.IndexOf(MainPage.SideBarItems.Last(x => x.ItemType == NavigationControlItemType.Location
                 && !x.Path.Equals(App.AppSettings.RecycleBinPath))) + 1;
@@ -189,7 +200,7 @@ namespace Files.DataModels
                     Path = path,
                     Glyph = GetItemIcon(path),
                     IsDefaultLocation = false,
-                    Text = res.Result.DisplayName
+                    Text = res.Result?.DisplayName ?? Path.GetFileName(path.TrimEnd('\\'))
                 };
 
                 if (!MainPage.SideBarItems.Contains(locationItem))
@@ -199,7 +210,7 @@ namespace Files.DataModels
             }
             else
             {
-                Debug.WriteLine("Pinned item was invalid and will be removed from the file lines list soon: " + res.ErrorCode.ToString());
+                Debug.WriteLine($"Pinned item was invalid and will be removed from the file lines list soon: {res.ErrorCode}");
                 RemoveItem(path);
             }
         }
@@ -207,12 +218,21 @@ namespace Files.DataModels
         /// <summary>
         /// Adds all items to the navigation sidebar
         /// </summary>
-        public async void AddAllItemsToSidebar()
+        public async Task AddAllItemsToSidebar()
         {
-            for (int i = 0; i < Items.Count(); i++)
+            await MainPage.SideBarItemsSemaphore.WaitAsync();
+            try
             {
-                string path = Items[i];
-                await AddItemToSidebarAsync(path);
+                for (int i = 0; i < Items.Count(); i++)
+                {
+                    string path = Items[i];
+                    await AddItemToSidebarAsync(path);
+                }
+                MainPage.SideBarItems.EndBulkOperation();
+            }
+            finally
+            {
+                MainPage.SideBarItemsSemaphore.Release();
             }
         }
 

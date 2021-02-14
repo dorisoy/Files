@@ -1,7 +1,6 @@
 using Files.Common;
-using Files.Filesystem.Cloud;
+using Files.Enums;
 using Files.UserControls.Widgets;
-using Files.ViewModels;
 using Files.Views;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Uwp.Extensions;
@@ -23,8 +22,7 @@ namespace Files.Filesystem
     public class DrivesManager : ObservableObject
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        public SettingsViewModel AppSettings => App.AppSettings;
-        private List<DriveItem> drivesList = new List<DriveItem>();
+        private readonly List<DriveItem> drivesList = new List<DriveItem>();
 
         public IReadOnlyList<DriveItem> Drives
         {
@@ -39,8 +37,6 @@ namespace Files.Filesystem
 
         private bool showUserConsentOnInit = false;
 
-        private CloudProviderController cloudProviderController;
-
         public bool ShowUserConsentOnInit
         {
             get => showUserConsentOnInit;
@@ -50,16 +46,16 @@ namespace Files.Filesystem
         private DeviceWatcher deviceWatcher;
         private bool driveEnumInProgress;
 
+        //Private as we want to prevent CloudDriveManager being constructed manually
         public DrivesManager()
         {
-            cloudProviderController = new CloudProviderController();
-
-            EnumerateDrives();
+            SetupDeviceWatcher();
         }
 
-        private async void EnumerateDrives()
+        public async Task<DrivesManager> EnumerateDrivesAsync()
         {
             driveEnumInProgress = true;
+
             if (await GetDrivesAsync())
             {
                 if (!Drives.Any(d => d.Type != DriveType.Removable))
@@ -70,94 +66,116 @@ namespace Files.Filesystem
                 }
             }
 
-            await GetVirtualDrivesListAsync();
             StartDeviceWatcher();
+
             driveEnumInProgress = false;
+
+            return this;
         }
 
-        private void StartDeviceWatcher()
+        private void SetupDeviceWatcher()
         {
             deviceWatcher = DeviceInformation.CreateWatcher(StorageDevice.GetDeviceSelector());
             deviceWatcher.Added += DeviceAdded;
             deviceWatcher.Removed += DeviceRemoved;
             deviceWatcher.EnumerationCompleted += DeviceWatcher_EnumerationCompleted;
-            deviceWatcher.Start();
+        }
+
+        private void StartDeviceWatcher()
+        {
+            if (deviceWatcher.Status == DeviceWatcherStatus.Created
+                || deviceWatcher.Status == DeviceWatcherStatus.Stopped
+                || deviceWatcher.Status == DeviceWatcherStatus.Aborted)
+            {
+                deviceWatcher?.Start();
+            }
         }
 
         private async void DeviceWatcher_EnumerationCompleted(DeviceWatcher sender, object args)
         {
+            System.Diagnostics.Debug.WriteLine("DeviceWatcher_EnumerationCompleted");
+            await RefreshUI();
+        }
+
+        private async Task RefreshUI()
+        {
             try
             {
-                await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                {
-                    if (MainPage.SideBarItems.FirstOrDefault(x => x is HeaderTextItem && x.Text == "SidebarDrives".GetLocalized()) == null)
-                    {
-                        MainPage.SideBarItems.Add(new HeaderTextItem()
-                        {
-                            Text = "SidebarDrives".GetLocalized()
-                        });
-                    }
-                    foreach (DriveItem drive in Drives)
-                    {
-                        if (!MainPage.SideBarItems.Contains(drive))
-                        {
-                            MainPage.SideBarItems.Add(drive);
-
-                            if (drive.Type != DriveType.VirtualDrive)
-                            {
-                                DrivesWidget.ItemsAdded.Add(drive);
-                            }
-                        }
-                    }
-                    foreach (INavigationControlItem item in MainPage.SideBarItems.ToList())
-                    {
-                        if (item is DriveItem && !Drives.Contains(item))
-                        {
-                            MainPage.SideBarItems.Remove(item);
-                            DrivesWidget.ItemsAdded.Remove(item);
-                        }
-                    }
-                });
+                await SyncSideBarItemsUI();
             }
-            catch (Exception)       // UI Thread not ready yet, so we defer the pervious operation until it is.
+            catch (Exception) // UI Thread not ready yet, so we defer the pervious operation until it is.
             {
+                System.Diagnostics.Debug.WriteLine($"RefreshUI Exception");
                 // Defer because UI-thread is not ready yet (and DriveItem requires it?)
-                CoreApplication.MainView.Activated += MainView_Activated;
+                CoreApplication.MainView.Activated += RefreshUI;
             }
         }
 
-        private async void MainView_Activated(CoreApplicationView sender, Windows.ApplicationModel.Activation.IActivatedEventArgs args)
+        private async void RefreshUI(CoreApplicationView sender, Windows.ApplicationModel.Activation.IActivatedEventArgs args)
         {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                if (MainPage.SideBarItems.FirstOrDefault(x => x is HeaderTextItem && x.Text == "SidebarDrives".GetLocalized()) == null)
-                {
-                    MainPage.SideBarItems.Add(new HeaderTextItem()
-                    {
-                        Text = "SidebarDrives".GetLocalized()
-                    });
-                }
-                foreach (DriveItem drive in Drives)
-                {
-                    if (!MainPage.SideBarItems.Contains(drive))
-                    {
-                        MainPage.SideBarItems.Add(drive);
+            await SyncSideBarItemsUI();
+            CoreApplication.MainView.Activated -= RefreshUI;
+        }
 
-                        if (drive.Type != DriveType.VirtualDrive)
-                        {
-                            DrivesWidget.ItemsAdded.Add(drive);
-                        }
-                    }
-                }
-                foreach (INavigationControlItem item in MainPage.SideBarItems.ToList())
+        private async Task SyncSideBarItemsUI()
+        {
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+            {
+                await MainPage.SideBarItemsSemaphore.WaitAsync();
+                try
                 {
-                    if (item is DriveItem && !Drives.Contains(item))
+                    var drivesSnapshot = Drives.ToList();
+
+                    var drivesSection = MainPage.SideBarItems.FirstOrDefault(x => x is HeaderTextItem && x.Text == "SidebarDrives".GetLocalized());
+
+                    if (drivesSection != null && drivesSnapshot.Count == 0)
+                    {
+                        //No drives - remove the header
+                        MainPage.SideBarItems.Remove(drivesSection);
+                    }
+
+                    drivesSection = MainPage.SideBarItems.FirstOrDefault(x => x is HeaderTextItem && x.Text == "SidebarDrives".GetLocalized());
+
+                    if (drivesSection == null && drivesSnapshot.Count > 0)
+                    {
+                        drivesSection = new HeaderTextItem()
+                        {
+                            Text = "SidebarDrives".GetLocalized()
+                        };
+
+                        MainPage.SideBarItems.Add(drivesSection);
+                    }
+
+                    //Remove all existing drives from the sidebar
+                    foreach (var item in MainPage.SideBarItems
+                    .Where(x => x.ItemType == NavigationControlItemType.Drive)
+                    .ToList())
                     {
                         MainPage.SideBarItems.Remove(item);
                         DrivesWidget.ItemsAdded.Remove(item);
                     }
+
+                    //Add all drives to the sidebar
+                    drivesSection = MainPage.SideBarItems.FirstOrDefault(x => x is HeaderTextItem && x.Text == "SidebarDrives".GetLocalized());
+                    var insertAt = MainPage.SideBarItems.IndexOf(drivesSection) + 1;
+                    foreach (var drive in drivesSnapshot)
+                    {
+                        MainPage.SideBarItems.Insert(insertAt, drive);
+                        DrivesWidget.ItemsAdded.Add(drive);
+                        insertAt++;
+                    }
+                    MainPage.SideBarItems.EndBulkOperation();
+                }
+                finally
+                {
+                    MainPage.SideBarItemsSemaphore.Release();
                 }
             });
+        }
+
+        private async void MainView_Activated(CoreApplicationView sender, Windows.ApplicationModel.Activation.IActivatedEventArgs args)
+        {
+            await SyncSideBarItemsUI();
             CoreApplication.MainView.Activated -= MainView_Activated;
         }
 
@@ -236,7 +254,7 @@ namespace Files.Filesystem
                 }
                 catch (Exception e)
                 {
-                    Logger.Warn("Can't get storage device name: " + e.Message + ", skipping...");
+                    Logger.Warn($"Can't get storage device name: {e.Message}, skipping...");
                 }
             }
 
@@ -251,7 +269,7 @@ namespace Files.Filesystem
             foreach (var drive in drives)
             {
                 var res = await FilesystemTasks.Wrap(() => StorageFolder.GetFolderFromPathAsync(drive.Name).AsTask());
-                if (res == FilesystemErrorCode.ERROR_UNAUTHORIZED)
+                if (res == FileSystemStatusCode.Unauthorized)
                 {
                     unauthorizedAccessDetected = true;
                     Logger.Warn($"{res.ErrorCode}: Attemting to add the device, {drive.Name}, failed at the StorageFolder initialization step. This device will be ignored.");
@@ -284,29 +302,9 @@ namespace Files.Filesystem
             return unauthorizedAccessDetected;
         }
 
-        public async Task GetVirtualDrivesListAsync()
-        {
-            await cloudProviderController.DetectInstalledCloudProvidersAsync();
-
-            foreach (var provider in cloudProviderController.CloudProviders)
-            {
-                var cloudProviderItem = new DriveItem()
-                {
-                    Text = provider.Name,
-                    Path = provider.SyncFolder,
-                    Type = DriveType.VirtualDrive,
-                };
-                lock (drivesList)
-                {
-                    drivesList.Add(cloudProviderItem);
-                }
-            }
-        }
-
         private DriveType GetDriveType(DriveInfo drive)
         {
-            DriveType type = DriveType.Unknown;
-
+            DriveType type;
             switch (drive.DriveType)
             {
                 case System.IO.DriveType.CDRom:
@@ -314,16 +312,7 @@ namespace Files.Filesystem
                     break;
 
                 case System.IO.DriveType.Fixed:
-                    if (Helpers.PathNormalization.NormalizePath(drive.Name) != Helpers.PathNormalization.NormalizePath("A:")
-                        && Helpers.PathNormalization.NormalizePath(drive.Name) !=
-                        Helpers.PathNormalization.NormalizePath("B:"))
-                    {
-                        type = DriveType.Fixed;
-                    }
-                    else
-                    {
-                        type = DriveType.FloppyDisk;
-                    }
+                    type = DriveType.Fixed;
                     break;
 
                 case System.IO.DriveType.Network:
@@ -343,7 +332,15 @@ namespace Files.Filesystem
                     break;
 
                 case System.IO.DriveType.Unknown:
-                    type = DriveType.Unknown;
+                    if (Helpers.PathNormalization.NormalizePath(drive.Name) != Helpers.PathNormalization.NormalizePath("A:") &&
+                            Helpers.PathNormalization.NormalizePath(drive.Name) != Helpers.PathNormalization.NormalizePath("B:"))
+                    {
+                        type = DriveType.Unknown;
+                    }
+                    else
+                    {
+                        type = DriveType.FloppyDisk;
+                    }
                     break;
 
                 default:
@@ -364,7 +361,7 @@ namespace Files.Filesystem
             if (devicePath.StartsWith("\\\\?\\")) // USB device
             {
                 // Check among already discovered drives
-                StorageFolder matchingDrive = App.AppSettings.DrivesManager.Drives.FirstOrDefault(x =>
+                StorageFolder matchingDrive = App.DrivesManager.Drives.FirstOrDefault(x =>
                     Helpers.PathNormalization.NormalizePath(x.Path) == Helpers.PathNormalization.NormalizePath(rootPath))?.Root;
                 if (matchingDrive == null)
                 {
@@ -472,7 +469,6 @@ namespace Files.Filesystem
         {
             if (!driveEnumInProgress)
             {
-                this.Dispose();
                 this.StartDeviceWatcher();
             }
         }

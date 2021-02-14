@@ -42,6 +42,7 @@ namespace Files.ViewModels.Properties
                 ViewModel.ItemPath = (Item as RecycleBinItem)?.ItemOriginalFolder ??
                     (Path.IsPathRooted(Item.ItemPath) ? Path.GetDirectoryName(Item.ItemPath) : Item.ItemPath);
                 ViewModel.ItemModifiedTimestamp = Item.ItemDateModified;
+                ViewModel.ItemCreatedTimestamp = Item.ItemDateCreated;
                 //ViewModel.FileIconSource = Item.FileImage;
                 ViewModel.LoadFolderGlyph = Item.LoadFolderGlyph;
                 ViewModel.LoadUnknownTypeGlyph = Item.LoadUnknownTypeGlyph;
@@ -59,7 +60,7 @@ namespace Files.ViewModels.Properties
                     ViewModel.ShortcutItemArgumentsVisibility = Visibility.Collapsed;
                     ViewModel.ShortcutItemOpenLinkCommand = new RelayCommand(async () =>
                     {
-                        var folderUri = new Uri("files-uwp:" + "?folder=" + Path.GetDirectoryName(ViewModel.ShortcutItemPath));
+                        var folderUri = new Uri($"files-uwp:?folder={Path.GetDirectoryName(ViewModel.ShortcutItemPath)}");
                         await Windows.System.Launcher.LaunchUriAsync(folderUri);
                     }, () =>
                     {
@@ -75,16 +76,15 @@ namespace Files.ViewModels.Properties
                 Item.ItemPath, System.IO.FileAttributes.Hidden);
 
             var fileIconInfo = await AppInstance.FilesystemViewModel.LoadIconOverlayAsync(Item.ItemPath, 80);
-            if (fileIconInfo.Icon != null && fileIconInfo.IsCustom)
+            if (fileIconInfo.IconData != null && fileIconInfo.IsCustom)
             {
-                ViewModel.FileIconSource = fileIconInfo.Icon;
+                ViewModel.FileIconSource = await fileIconInfo.IconData.ToBitmapAsync();
             }
 
             if (Item.IsShortcutItem)
             {
                 ViewModel.ItemSizeVisibility = Visibility.Visible;
-                ViewModel.ItemSize = ByteSize.FromBytes(Item.FileSizeBytes).ToBinaryString().ConvertSizeAbbreviation()
-                    + " (" + ByteSize.FromBytes(Item.FileSizeBytes).Bytes.ToString("#,##0") + " " + "ItemSizeBytes".GetLocalized() + ")";
+                ViewModel.ItemSize = $"{ByteSize.FromBytes(Item.FileSizeBytes).ToBinaryString().ConvertSizeAbbreviation()} ({ByteSize.FromBytes(Item.FileSizeBytes).Bytes:#,##0} {"ItemSizeBytes".GetLocalized()})";
                 ViewModel.ItemCreatedTimestamp = Item.ItemDateCreated;
                 ViewModel.ItemAccessedTimestamp = Item.ItemDateAccessed;
                 if (Item.IsLinkItem || string.IsNullOrWhiteSpace(((ShortcutItem)Item).TargetPath))
@@ -177,8 +177,7 @@ namespace Files.ViewModels.Properties
             {
                 var folderSize = await fileSizeTask;
                 ViewModel.ItemSizeBytes = folderSize;
-                ViewModel.ItemSize = ByteSize.FromBytes(folderSize).ToBinaryString().ConvertSizeAbbreviation()
-                    + " (" + ByteSize.FromBytes(folderSize).Bytes.ToString("#,##0") + " " + "ItemSizeBytes".GetLocalized() + ")";
+                ViewModel.ItemSize = $"{ByteSize.FromBytes(folderSize).ToBinaryString().ConvertSizeAbbreviation()} ({ByteSize.FromBytes(folderSize).Bytes:#,##0} {"ItemSizeBytes".GetLocalized()})";
             }
             catch (Exception ex)
             {

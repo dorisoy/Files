@@ -1,18 +1,18 @@
 ﻿using Files.Common;
-using Files.Controllers;
+using Files.Enums;
 using Files.Filesystem;
 using Files.Helpers;
 using Files.UserControls.MultitaskingControl;
 using Files.ViewModels;
 using Microsoft.Toolkit.Uwp.Extensions;
-using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.Resources.Core;
@@ -21,6 +21,7 @@ using Windows.System;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
@@ -36,23 +37,24 @@ namespace Files.Views
         public SettingsViewModel AppSettings => App.AppSettings;
         public static IMultitaskingControl MultitaskingControl { get; set; }
 
-        private TabItem _SelectedTabItem;
+        private TabItem selectedTabItem;
 
         public TabItem SelectedTabItem
         {
             get
             {
-                return _SelectedTabItem;
+                return selectedTabItem;
             }
             set
             {
-                _SelectedTabItem = value;
+                selectedTabItem = value;
                 NotifyPropertyChanged(nameof(SelectedTabItem));
             }
         }
 
         public static ObservableCollection<TabItem> AppInstances = new ObservableCollection<TabItem>();
-        public static ObservableCollection<INavigationControlItem> SideBarItems = new ObservableCollection<INavigationControlItem>();
+        public static BulkConcurrentObservableCollection<INavigationControlItem> SideBarItems = new BulkConcurrentObservableCollection<INavigationControlItem>();
+        public static SemaphoreSlim SideBarItemsSemaphore = new SemaphoreSlim(1, 1);
 
         public MainPage()
         {
@@ -75,11 +77,9 @@ namespace Files.Views
         {
             if (eventArgs.NavigationMode != NavigationMode.Back)
             {
-                App.AppSettings = new SettingsViewModel();
-                App.InteractionViewModel = new InteractionViewModel();
-                App.SidebarPinnedController = new SidebarPinnedController();
-
-                Helpers.ThemeHelper.Initialize();
+                //Initialize the static theme helper to capture a reference to this window
+                //to handle theme changes without restarting the app
+                ThemeHelper.Initialize();
 
                 if (eventArgs.Parameter == null || (eventArgs.Parameter is string eventStr && string.IsNullOrEmpty(eventStr)))
                 {
@@ -251,17 +251,14 @@ namespace Files.Views
                 NavigationArg = path
             };
             tabItem.Control.ContentChanged += Control_ContentChanged;
-            await SetSelectedTabInfoAsync(tabItem, path);
+            await UpdateTabInfo(tabItem, path);
             AppInstances.Insert(atIndex == -1 ? AppInstances.Count : atIndex, tabItem);
         }
 
-        private static async Task SetSelectedTabInfoAsync(TabItem selectedTabItem, string currentPath, string tabHeader = null)
+        private static async Task<(string tabLocationHeader, Microsoft.UI.Xaml.Controls.IconSource tabIcon)> GetSelectedTabInfoAsync(string currentPath)
         {
-            selectedTabItem.AllowStorageItemDrop = true;
-
             string tabLocationHeader;
             Microsoft.UI.Xaml.Controls.FontIconSource fontIconSource = new Microsoft.UI.Xaml.Controls.FontIconSource();
-            Microsoft.UI.Xaml.Controls.IconSource tabIcon;
             fontIconSource.FontFamily = App.Current.Resources["FluentUIGlyphs"] as FontFamily;
 
             if (currentPath == null || currentPath == "SidebarSettings/Text".GetLocalized())
@@ -326,41 +323,54 @@ namespace Files.Views
                 // If path is a drive's root
                 if (NormalizePath(Path.GetPathRoot(currentPath)) == NormalizePath(currentPath))
                 {
-                    if (NormalizePath(currentPath) != NormalizePath("A:") && NormalizePath(currentPath) != NormalizePath("B:"))
+                    try
                     {
-                        var remDriveNames = (await KnownFolders.RemovableDevices.GetFoldersAsync()).Select(x => x.DisplayName);
-                        var matchingDriveName = remDriveNames.FirstOrDefault(x => NormalizePath(currentPath).Contains(x.ToUpperInvariant()));
+                        List<DriveInfo> drives = DriveInfo.GetDrives().ToList();
+                        DriveInfo matchingDrive = drives.FirstOrDefault(x => NormalizePath(currentPath).Contains(NormalizePath(x.Name)));
 
-                        if (matchingDriveName == null)
+                        if (matchingDrive != null)
                         {
-                            fontIconSource.Glyph = "\xeb8b";
-                            tabLocationHeader = NormalizePath(currentPath);
+                            // Go through types and set the icon according to type
+                            string type = GetDriveTypeIcon(matchingDrive);
+                            if (!string.IsNullOrWhiteSpace(type))
+                            {
+                                fontIconSource.Glyph = type;
+                            }
+                            else
+                            {
+                                fontIconSource.Glyph = "\xeb8b";    //Drive icon
+                            }
                         }
                         else
                         {
-                            fontIconSource.Glyph = "\xec0a";
-                            tabLocationHeader = matchingDriveName;
+                            fontIconSource.Glyph = "\xeb4a";    //Floppy icon
                         }
                     }
-                    else
+                    catch (Exception)
                     {
-                        fontIconSource.Glyph = "\xeb4a";
-                        tabLocationHeader = NormalizePath(currentPath);
+                        fontIconSource.Glyph = "\xeb8b";    //Fallback
                     }
+
+                    tabLocationHeader = NormalizePath(currentPath);
                 }
                 else
                 {
-                    fontIconSource.Glyph = "\xea55";
+                    fontIconSource.Glyph = "\xea55";    //Folder icon
                     tabLocationHeader = currentPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Split('\\', StringSplitOptions.RemoveEmptyEntries).Last();
+
+                    FilesystemResult<StorageFolderWithPath> rootItem = await FilesystemTasks.Wrap(() => DrivesManager.GetRootFromPathAsync(currentPath));
+                    if (rootItem)
+                    {
+                        StorageFolder currentFolder = await FilesystemTasks.Wrap(() => StorageFileExtensions.DangerousGetFolderFromPathAsync(currentPath, rootItem));
+                        if (currentFolder != null && !string.IsNullOrEmpty(currentFolder.DisplayName))
+                        {
+                            tabLocationHeader = currentFolder.DisplayName;
+                        }
+                    }
                 }
             }
-            if (tabHeader != null)
-            {
-                tabLocationHeader = tabHeader;
-            }
-            tabIcon = fontIconSource;
-            selectedTabItem.Header = tabLocationHeader;
-            selectedTabItem.IconSource = tabIcon;
+
+            return (tabLocationHeader, fontIconSource);
         }
 
         private static async void Control_ContentChanged(object sender, TabItemArguments e)
@@ -375,22 +385,24 @@ namespace Files.Views
 
         private static async Task UpdateTabInfo(TabItem tabItem, object navigationArg)
         {
+            tabItem.AllowStorageItemDrop = true;
             if (navigationArg is PaneNavigationArguments paneArgs)
             {
-                var leftHeader = !string.IsNullOrEmpty(paneArgs.LeftPaneNavPathParam) ? new DirectoryInfo(paneArgs.LeftPaneNavPathParam).Name : null;
-                var rightHeader = !string.IsNullOrEmpty(paneArgs.RightPaneNavPathParam) ? new DirectoryInfo(paneArgs.RightPaneNavPathParam).Name : null;
-                if (leftHeader != null && rightHeader != null)
+                if (!string.IsNullOrEmpty(paneArgs.LeftPaneNavPathParam) && !string.IsNullOrEmpty(paneArgs.RightPaneNavPathParam))
                 {
-                    await SetSelectedTabInfoAsync(tabItem, paneArgs.LeftPaneNavPathParam, $"{leftHeader} | {rightHeader}");
+                    var leftTabInfo = await GetSelectedTabInfoAsync(paneArgs.LeftPaneNavPathParam);
+                    var rightTabInfo = await GetSelectedTabInfoAsync(paneArgs.RightPaneNavPathParam);
+                    tabItem.Header = $"{leftTabInfo.tabLocationHeader} | {rightTabInfo.tabLocationHeader}";
+                    tabItem.IconSource = leftTabInfo.tabIcon;
                 }
                 else
                 {
-                    await SetSelectedTabInfoAsync(tabItem, paneArgs.LeftPaneNavPathParam);
+                    (tabItem.Header, tabItem.IconSource) = await GetSelectedTabInfoAsync(paneArgs.LeftPaneNavPathParam);
                 }
             }
             else if (navigationArg is string pathArgs)
             {
-                await SetSelectedTabInfoAsync(tabItem, pathArgs);
+                (tabItem.Header, tabItem.IconSource) = await GetSelectedTabInfoAsync(pathArgs);
             }
         }
 
@@ -500,6 +512,55 @@ namespace Files.Views
         private void HorizontalMultitaskingControl_Loaded(object sender, RoutedEventArgs e)
         {
             MultitaskingControl = HorizontalMultitaskingControl;
+        }
+
+        private static string GetDriveTypeIcon(DriveInfo drive)
+        {
+            string type;
+
+            switch (drive.DriveType)
+            {
+                case System.IO.DriveType.CDRom:
+                    type = "\xec39";
+                    break;
+
+                case System.IO.DriveType.Fixed:
+                    type = "\xeb8b";
+                    break;
+
+                case System.IO.DriveType.Network:
+                    type = "\xeac2";
+                    break;
+
+                case System.IO.DriveType.NoRootDirectory:
+                    type = "\xea5a";
+                    break;
+
+                case System.IO.DriveType.Ram:
+                    type = "\xe9f2";
+                    break;
+
+                case System.IO.DriveType.Removable:
+                    type = "\xec0a";
+                    break;
+
+                case System.IO.DriveType.Unknown:
+                    if (NormalizePath(drive.Name) != NormalizePath("A:") && NormalizePath(drive.Name) != NormalizePath("B:"))
+                    {
+                        type = "\xeb8b";
+                    }
+                    else
+                    {
+                        type = "\xeb4a";    //Floppy icon
+                    }
+                    break;
+
+                default:
+                    type = "\xeb8b";    //Drive icon
+                    break;
+            }
+
+            return type;
         }
     }
 }

@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using System.IO.Pipes;
 using System.Security.Principal;
-using Windows.Storage;
 
 namespace FilesFullTrust
 {
@@ -15,7 +14,7 @@ namespace FilesFullTrust
         {
             Logger.Info("Toggle QuickLook");
 
-            string PipeName = "QuickLook.App.Pipe." + WindowsIdentity.GetCurrent().User?.Value;
+            string PipeName = $"QuickLook.App.Pipe.{WindowsIdentity.GetCurrent().User?.Value}";
             string Toggle = "QuickLook.App.PipeMessages.Toggle";
 
             using (var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out))
@@ -30,11 +29,11 @@ namespace FilesFullTrust
             }
         }
 
-        public static void CheckQuickLookAvailability(ApplicationDataContainer localSettings)
+        public static bool CheckQuickLookAvailability()
         {
             static int QuickLookServerAvailable()
             {
-                string PipeName = "QuickLook.App.Pipe." + WindowsIdentity.GetCurrent().User?.Value;
+                string PipeName = $"QuickLook.App.Pipe.{WindowsIdentity.GetCurrent().User?.Value}";
                 string Switch = "QuickLook.App.PipeMessages.Switch";
 
                 using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
@@ -51,7 +50,7 @@ namespace FilesFullTrust
 
                     return serverInstances;
                 }
-                catch (TimeoutException e)
+                catch (TimeoutException)
                 {
                     client.Close();
                     return 0;
@@ -61,14 +60,13 @@ namespace FilesFullTrust
             try
             {
                 var result = QuickLookServerAvailable();
-
                 Logger.Info($"QuickLook detected: {result != 0}");
-                localSettings.Values["quicklook_enabled"] = result != 0;
+                return result != 0;
             }
             catch (Exception ex)
             {
                 Logger.Info(ex, ex.Message);
-                localSettings.Values["quicklook_enabled"] = 0;
+                return false;
             }
         }
     }
