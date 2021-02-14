@@ -671,7 +671,7 @@ namespace FilesFullTrust
                 folderItem.Properties.GetPropertyString(Ole32.PROPERTYKEY.System.Size) : null;
             folderItem.Properties.TryGetValue<string>(
                 Ole32.PROPERTYKEY.System.ItemTypeText, out var fileType);
-            return new ShellFileItem(isFolder, recyclePath, fileName, filePath, recycleDate, modifiedDate, DateTime.MinValue, fileSize, fileSizeBytes ?? 0, fileType);
+            return new ShellFileItem(isFolder, recyclePath, fileName, filePath, recycleDate, modifiedDate, DateTime.MinValue.ToFileTime(), fileSize, fileSizeBytes ?? 0, fileType);
         }
 
         private static void HandleApplicationsLaunch(IEnumerable<string> applications, AppServiceRequestReceivedEventArgs args)
