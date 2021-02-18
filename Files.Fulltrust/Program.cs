@@ -741,13 +741,13 @@ namespace FilesFullTrust
                 Ole32.PROPERTYKEY.System.ItemNameDisplay, out var fileName);
             fileName ??= Path.GetFileName(folderItem.Name); // Original file name
             string filePath = folderItem.Name; // Original file path + name (recycle bin only)
-            folderItem.Properties.TryGetValue<System.Runtime.InteropServices.ComTypes.FILETIME?>(
+            folderItem.Properties.TryGetValue<System.Runtime.InteropServices.ComTypes.FILETIME>(
                 Ole32.PROPERTYKEY.System.Recycle.DateDeleted, out var fileTime);
             var recycleDate = (long)((ulong)fileTime.dwHighDateTime << 32) + (uint)fileTime.dwLowDateTime;
             folderItem.Properties.TryGetValue<System.Runtime.InteropServices.ComTypes.FILETIME>(
                 Ole32.PROPERTYKEY.System.DateModified, out fileTime);
             var modifiedDate = (long)((ulong)fileTime.dwHighDateTime << 32) + (uint)fileTime.dwLowDateTime;
-            folderItem.Properties.TryGetValue<System.Runtime.InteropServices.ComTypes.FILETIME?>(
+            folderItem.Properties.TryGetValue<System.Runtime.InteropServices.ComTypes.FILETIME>(
                 Ole32.PROPERTYKEY.System.DateCreated, out fileTime);
             var createdDate = (long)((ulong)fileTime.dwHighDateTime << 32) + (uint)fileTime.dwLowDateTime;
             string fileSize = folderItem.Properties.TryGetValue<ulong?>(
