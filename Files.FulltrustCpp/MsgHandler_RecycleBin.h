@@ -13,11 +13,12 @@ struct ShellFileItem
     std::string FilePath;
     LONGLONG RecycleDate;
     LONGLONG ModifiedDate;
+    LONGLONG CreatedDate;
     std::string FileSize;
     ULONG FileSizeBytes;
     std::string FileType;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShellFileItem, IsFolder, RecyclePath, FileName, FilePath, RecycleDate, ModifiedDate, FileSize, FileSizeBytes, FileType);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShellFileItem, IsFolder, RecyclePath, FileName, FilePath, RecycleDate, ModifiedDate, CreatedDate, FileSize, FileSizeBytes, FileType);
 };
 
 class MsgHandler_RecycleBin : public MessageHandler
@@ -27,7 +28,7 @@ class MsgHandler_RecycleBin : public MessageHandler
     static std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
 
 public:
-    std::list<ShellFileItem> EnumerateRecycleBin();
+    std::list<ShellFileItem> EnumerateShellFolder(LPCWSTR folderPath);
 
 	IAsyncOperation<bool> ParseArgumentsAsync(AppServiceManager const& manager, AppServiceRequestReceivedEventArgs const& args);
 

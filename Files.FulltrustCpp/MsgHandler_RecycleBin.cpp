@@ -38,7 +38,7 @@ ShellFileItem MsgHandler_RecycleBin::GetShellItem(IShellItem2* iItem)
 	FILETIME createFt = { 0 };
 	if (SUCCEEDED(iItem->GetFileTime(PKEY_DateCreated, &createFt)))
 	{
-		shellItem.RecycleDate = ((ULONGLONG)createFt.dwHighDateTime << 32) + (UINT)createFt.dwLowDateTime;
+		shellItem.CreatedDate = ((ULONGLONG)createFt.dwHighDateTime << 32) + (UINT)createFt.dwLowDateTime;
 	}
 	FILETIME deletedFt = { 0 };
 	if (SUCCEEDED(iItem->GetFileTime(SCID_DateDeleted, &deletedFt)))
@@ -81,15 +81,14 @@ ShellFileItem MsgHandler_RecycleBin::GetShellItem(IShellItem2* iItem)
 	return shellItem;
 }
 
-std::list<ShellFileItem> MsgHandler_RecycleBin::EnumerateRecycleBin()
+std::list<ShellFileItem> MsgHandler_RecycleBin::EnumerateShellFolder(LPCWSTR folderPath)
 {
 	std::list<ShellFileItem> shellItems;
-	IShellItem* psiRecycleBin;
-	if (SUCCEEDED(SHGetKnownFolderItem(FOLDERID_RecycleBinFolder, KF_FLAG_DEFAULT,
-		NULL, IID_PPV_ARGS(&psiRecycleBin))))
+	IShellItem* psiShellFolder;
+	if (SUCCEEDED(SHCreateItemFromParsingName(folderPath, NULL, IID_PPV_ARGS(&psiShellFolder))))
 	{
 		IEnumShellItems* pesi;
-		if (SUCCEEDED(psiRecycleBin->BindToHandler(NULL, BHID_EnumItems, IID_PPV_ARGS(&pesi))))
+		if (SUCCEEDED(psiShellFolder->BindToHandler(NULL, BHID_EnumItems, IID_PPV_ARGS(&pesi))))
 		{
 			IShellItem* psi;
 			while (pesi->Next(1, &psi, NULL) == S_OK)
@@ -105,7 +104,7 @@ std::list<ShellFileItem> MsgHandler_RecycleBin::EnumerateRecycleBin()
 			}
 			pesi->Release();
 		}
-		psiRecycleBin->Release();
+		psiShellFolder->Release();
 	}
 	return shellItems;
 }
@@ -138,14 +137,17 @@ IAsyncOperation<bool> MsgHandler_RecycleBin::ParseArgumentsAsync(AppServiceManag
 					co_await args.Request().SendResponseAsync(responseQuery);
 				}
 			}
-			else if (binAction == L"Enumerate")
-			{
-				// Enumerate recyclebin contents and send response to UWP
-				auto serializedContent = json(this->EnumerateRecycleBin()).dump();
-				ValueSet responseEnum;
-				responseEnum.Insert(L"Enumerate", winrt::box_value(winrt::to_hstring(serializedContent)));
-				co_await args.Request().SendResponseAsync(responseEnum);
-			}
+
+			co_return TRUE;
+		}
+		else if (arguments == L"ShellFolder")
+		{
+			// Enumerate recyclebin contents and send response to UWP
+			auto folderPath = args.Request().Message().Lookup(L"folder").as<hstring>();
+			auto serializedContent = json(this->EnumerateShellFolder(folderPath.c_str())).dump();
+			ValueSet responseEnum;
+			responseEnum.Insert(L"Enumerate", winrt::box_value(winrt::to_hstring(serializedContent)));
+			co_await args.Request().SendResponseAsync(responseEnum);
 
 			co_return TRUE;
 		}
