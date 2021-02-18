@@ -77,6 +77,42 @@ IconResponse MsgHandler_FileOperations::GetFileIconAndOverlay(LPCWSTR fileIconPa
 {
 	IconResponse resp{ "", "", false };
 
+	IShellItem* psi;
+	if (SUCCEEDED(SHCreateItemFromParsingName(fileIconPath, NULL, IID_IShellItem, (void**)&psi)))
+	{
+		IShellItemImageFactory* psiif = NULL;
+		if (SUCCEEDED(psi->QueryInterface(IID_IShellItemImageFactory, (void**)&psiif)))
+		{
+			HBITMAP hBitmap = NULL;
+			SIZE iconSize = { thumbnailSize, thumbnailSize };
+			int flags = SIIGBF_BIGGERSIZEOK;
+			if (thumbnailSize < 80)
+			{
+				if (SUCCEEDED(psiif->GetImage(iconSize, flags | SIIGBF_ICONONLY, &hBitmap)))
+				{
+					resp.Icon = IconToBase64String(hBitmap);
+					DeleteObject(hBitmap);
+				}
+			}
+			else
+			{
+				if (SUCCEEDED(psiif->GetImage(iconSize, flags | SIIGBF_THUMBNAILONLY, &hBitmap)))
+				{
+					resp.Icon = IconToBase64String(hBitmap, false);
+					DeleteObject(hBitmap);
+				}
+				else if (SUCCEEDED(psiif->GetImage(iconSize, SIIGBF_BIGGERSIZEOK, &hBitmap)))
+				{
+					resp.Icon = IconToBase64String(hBitmap);
+					DeleteObject(hBitmap);
+				}
+			}
+
+			psiif->Release();
+		}
+		psi->Release();
+	}
+
 	SHFILEINFO shfi;
 	ZeroMemory(&shfi, sizeof(shfi));
 	if (!SHGetFileInfo(fileIconPath, 0, &shfi, sizeof(SHFILEINFO), SHGFI_OVERLAYINDEX | SHGFI_ICON | SHGFI_SYSICONINDEX | SHGFI_ICONLOCATION))
@@ -112,42 +148,6 @@ IconResponse MsgHandler_FileOperations::GetFileIconAndOverlay(LPCWSTR fileIconPa
 	}
 
 	imageList->Release();
-
-	IShellItem* psi;
-	if (SUCCEEDED(SHCreateItemFromParsingName(fileIconPath, NULL, IID_IShellItem, (void**)&psi)))
-	{
-		IShellItemImageFactory* psiif = NULL;
-		if (SUCCEEDED(psi->QueryInterface(IID_IShellItemImageFactory, (void**)&psiif)))
-		{
-			HBITMAP hBitmap = NULL;
-			SIZE iconSize = { thumbnailSize, thumbnailSize };
-			int flags = SIIGBF_BIGGERSIZEOK;
-			if (thumbnailSize < 80)
-			{
-				if (SUCCEEDED(psiif->GetImage(iconSize, flags | SIIGBF_ICONONLY, &hBitmap)))
-				{
-					resp.Icon = IconToBase64String(hBitmap);
-					DeleteObject(hBitmap);
-				}
-			}
-			else
-			{
-				if (SUCCEEDED(psiif->GetImage(iconSize, flags | SIIGBF_THUMBNAILONLY, &hBitmap)))
-				{
-					resp.Icon = IconToBase64String(hBitmap, false);
-					DeleteObject(hBitmap);
-				}
-				else if(SUCCEEDED(psiif->GetImage(iconSize, SIIGBF_BIGGERSIZEOK, &hBitmap)))
-				{
-					resp.Icon = IconToBase64String(hBitmap);
-					DeleteObject(hBitmap);
-				}
-			}
-
-			psiif->Release();
-		}
-		psi->Release();
-	}
 
 	return resp;
 }
